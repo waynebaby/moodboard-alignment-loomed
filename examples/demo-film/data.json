@@ -1,0 +1,184 @@
+{
+  "meta": {
+    "project": "雨夜便利店",
+    "project_type": "film",
+    "style": "都市夜色中的克制温暖，冷雨、便利店荧光、少量琥珀色人情味；整体偏类型短片质感，不煽情，不广告化。",
+    "aspectRatio": "16:9",
+    "sound_enabled": true,
+    "created": "2026-06-23T00:00:00",
+    "version": 1
+  },
+  "summary": {
+    "one_sentence": "一个雨夜里，两个陌生人在便利店短暂相遇，冷色城市被一盏过亮的便利店灯轻轻划开。",
+    "keywords": ["雨夜", "便利店", "克制温暖", "都市孤独", "低饱和", "微光"],
+    "aligned": [
+      "整体情绪不是治愈系鸡汤，而是冷城市里一瞬间的微弱照亮。",
+      "画面以冷蓝灰为底，便利店内部保留少量暖琥珀色。",
+      "节奏缓慢，靠沉默、动作细节和环境声推进。"
+    ],
+    "risks": [
+      "避免拍成甜宠或暖心广告。",
+      "避免霓虹赛博朋克过度风格化。",
+      "避免用大段台词解释人物处境。"
+    ]
+  },
+  "palette": [
+    {"name": "雨夜蓝灰", "hex": "#2F3D4A", "usage": "城市外部、雨幕、玻璃反光"},
+    {"name": "便利店冷白", "hex": "#E8EEF0", "usage": "货架灯、冰柜灯、室内主光"},
+    {"name": "琥珀暖光", "hex": "#C47A5A", "usage": "热饮区、手部特写、短暂人情味"},
+    {"name": "湿沥青黑", "hex": "#17191C", "usage": "夜路、暗部、人物轮廓"}
+  ],
+  "timeline": [
+    {
+      "id": "node-rain-arrival",
+      "label": "雨里进店",
+      "timeRange": "0:00-0:20",
+      "emotion": {
+        "type": "疏离的疲惫",
+        "intensity": 5,
+        "keywords": ["冷", "孤独", "被城市推着走"],
+        "description": "人物从雨夜进入便利店，像从一片巨大的冷噪声里短暂躲进白光。"
+      },
+      "motion": {
+        "type": "缓慢进入",
+        "intensity": 3,
+        "description": "镜头跟随人物进店，节奏慢，剪辑稀疏，动作以收伞、抖落雨水、停顿为主。"
+      },
+      "color": {
+        "palette": ["#2F3D4A", "#E8EEF0", "#17191C"],
+        "temperature": "外部冷蓝灰，店内冷白偏绿",
+        "saturation": "低饱和",
+        "description": "冷色占据画面，便利店白光像一块过曝的安全区。"
+      },
+      "composition": {
+        "type": "玻璃门框景",
+        "camera": "平视，中远景",
+        "dof": "中景深",
+        "description": "通过便利店玻璃门看人物进入，雨水和反光形成前景遮挡。"
+      },
+      "style": {
+        "keywords": ["都市类型短片", "克制", "湿冷质感"],
+        "texture": "雨水、玻璃反光、湿外套、荧光灯",
+        "description": "真实城市夜景质感，不做过度霓虹化。"
+      },
+      "sound": {
+        "density": "中低",
+        "type": "雨声 + 自动门提示音",
+        "reverb": "小空间门口反射",
+        "reference": "冷雨声、便利店门铃、远处车流",
+        "description": "雨声在门打开时短暂涌入，随后被便利店内部低频电流声吞掉。"
+      },
+      "image": {
+        "url": "",
+        "description": "雨夜城市街角便利店，人物推门进入，玻璃门上挂着雨水，冷白光从店内溢出。",
+        "status": "placeholder"
+      },
+      "image_prompt": "Cinematic still of a small convenience store on a rainy urban night, a tired person entering through a glass door, rain droplets and reflections in foreground, cold blue-gray street, harsh but soft convenience store fluorescent light spilling out, wet asphalt, restrained mood, low saturation, realistic urban drama, 16:9 composition",
+      "voice_prompt": "年轻女性旁白，声音很轻，疲惫但不脆弱，语速慢，像在雨夜里自言自语。",
+      "audio_text": "那天晚上，雨一直没有停。"
+    },
+    {
+      "id": "node-silent-shelf",
+      "label": "货架旁的沉默",
+      "timeRange": "0:20-0:45",
+      "emotion": {
+        "type": "陌生人的短暂停靠",
+        "intensity": 4,
+        "keywords": ["克制", "观察", "不打扰"],
+        "description": "两个人在同一排货架前短暂停住，没有真正对话，只共享同一片白光。"
+      },
+      "motion": {
+        "type": "静态观察",
+        "intensity": 2,
+        "description": "镜头尽量不动，靠手部动作、眼神避让和货架缝隙建立关系。"
+      },
+      "color": {
+        "palette": ["#E8EEF0", "#2F3D4A", "#C47A5A"],
+        "temperature": "冷白主导，暖色只在热饮区和手部出现",
+        "saturation": "低饱和，暖色面积小于 15%",
+        "description": "冷白货架灯把人物隔开，少量琥珀色暗示温度尚未消失。"
+      },
+      "composition": {
+        "type": "货架分割构图",
+        "camera": "平视，隔着货架拍摄",
+        "dof": "浅景深",
+        "description": "货架和商品形成横向分割，人物被框在不同层次里，距离近但关系远。"
+      },
+      "style": {
+        "keywords": ["生活细节", "微光", "低声叙事"],
+        "texture": "塑料包装反光、冰柜雾气、纸杯热气",
+        "description": "让日常物件承担情绪，不用夸张表演。"
+      },
+      "sound": {
+        "density": "稀疏",
+        "type": "冰柜嗡鸣 + 包装摩擦声",
+        "reverb": "干声，小空间",
+        "reference": "便利店冷柜、电流、纸杯盖扣上的轻响",
+        "description": "声音非常近，人物沉默时，环境细节被放大。"
+      },
+      "image": {
+        "url": "",
+        "description": "便利店货架之间，两个人隔着货架停住，冷白灯，热饮区一小块暖色，安静克制。",
+        "status": "placeholder"
+      },
+      "image_prompt": "Cinematic convenience store aisle at night, two strangers paused near the same shelf but not speaking, cold fluorescent white light, narrow shelves creating layered composition, small amber warmth from hot drink machine, plastic packaging reflections, quiet restrained urban drama, shallow depth of field, low saturation, 16:9",
+      "voice_prompt": "男声，低而克制，几乎像没有打算被听见，语速慢，有一点沙哑。",
+      "audio_text": "有时候，人只是需要在同一个地方停一下。"
+    },
+    {
+      "id": "node-warm-exit",
+      "label": "带着热饮离开",
+      "timeRange": "0:45-1:10",
+      "emotion": {
+        "type": "没有说出口的照亮",
+        "intensity": 6,
+        "keywords": ["微暖", "留白", "继续生活"],
+        "description": "其中一人把多买的一杯热饮留在柜台边，没有解释。另一个人发现时，对方已经走进雨里。"
+      },
+      "motion": {
+        "type": "缓慢离开",
+        "intensity": 3,
+        "description": "动作很轻，镜头不追，只让人物逐渐走出便利店光区。"
+      },
+      "color": {
+        "palette": ["#C47A5A", "#2F3D4A", "#E8EEF0"],
+        "temperature": "暖琥珀短暂成为视觉中心，外部仍是冷蓝灰",
+        "saturation": "暖色略微提升，但整体仍克制",
+        "description": "热饮杯的暖色成为画面唯一明确温度，随后被雨夜吞回去。"
+      },
+      "composition": {
+        "type": "门口纵深构图",
+        "camera": "固定机位，人物背影远离",
+        "dof": "中景深",
+        "description": "前景是柜台上的热饮，背景是玻璃门外逐渐模糊的背影。"
+      },
+      "style": {
+        "keywords": ["余韵", "不解释", "克制温暖"],
+        "texture": "纸杯、热气、玻璃雾、雨夜反光",
+        "description": "结尾不煽情，只留下一个可被理解也可被误解的动作。"
+      },
+      "sound": {
+        "density": "低",
+        "type": "雨声回归 + 纸杯轻响",
+        "reverb": "门口空间，雨声拉远",
+        "reference": "门铃声、脚步声、雨声、远处车辆",
+        "description": "自动门再次打开，雨声涌入，随后只剩纸杯盖轻轻弹回的声音。"
+      },
+      "image": {
+        "url": "",
+        "description": "便利店柜台前景是一杯冒热气的热饮，背景中一个人走出玻璃门进入雨夜，冷暖对比克制。",
+        "status": "placeholder"
+      },
+      "image_prompt": "Cinematic final shot inside a convenience store at rainy night, foreground a warm paper cup with steam on the counter, background a person leaving through glass door into blue-gray rain, restrained warmth, quiet emotional aftertaste, cold and warm contrast, wet reflections, realistic urban short film, 16:9",
+      "voice_prompt": "年轻女性旁白，声音恢复平静，很轻，有一点笑意但不明显。",
+      "audio_text": "天还是很冷。但那一小会儿，好像没有那么难熬。"
+    }
+  ],
+  "execution_notes": [
+    "整体避免广告片式温暖，不要使用大面积金黄或煽情配乐。",
+    "雨夜外部和便利店内部的冷暖关系是核心视觉结构。",
+    "表演要克制，尽量通过动作和物件表达关系，而不是解释性对白。",
+    "声音设计以环境细节为主，TTS 台词仅作为声音参考，不一定进入最终成片。"
+  ],
+  "view": "execution"
+}

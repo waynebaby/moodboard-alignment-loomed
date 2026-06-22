@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Secrets / local env
+.env
+.env.*
+*.key
+
+# Logs / temp
+*.log
+*.tmp
+*.bak
+
+# Generated moodboard outputs
+**/images/
+**/audio/
+**/ck2-client.html
+**/ck2-execution.html
+**/index-client.html
+**/index-director.html
+**/index-execution.html
+
+# Large generated media
+*.mp3
+*.wav
+*.m4a
+*.mp4
+*.mov
+
+# Keep curated example outputs
+!examples/companion-robot-booth/ck2-client.html
+!examples/companion-robot-booth/ck2-execution.html
+!examples/companion-robot-booth/index-client.html
+!examples/companion-robot-booth/index-director.html
+!examples/companion-robot-booth/index-execution.html

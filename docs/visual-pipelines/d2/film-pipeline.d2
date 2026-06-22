@@ -1,0 +1,132 @@
+vars: {
+  paper: "#FFFDF8"
+  ink: "#211B17"
+  muted: "#74675E"
+  green: "#5B8C5A"
+  green2: "#EAF2E7"
+  orange: "#E8724A"
+  orange2: "#FFF0E8"
+  blue: "#5B6C8C"
+  blue2: "#E8EEF3"
+  amber: "#C47A5A"
+  amber2: "#F8E8D8"
+  red: "#B8564B"
+  red2: "#F8E6E0"
+}
+
+direction: down
+
+title: {
+  label: "影视 AI 前期开发链路\n从叙事理解到可执行视听资产"
+  shape: text
+  style.font-size: 32
+  style.bold: true
+}
+
+input: {
+  label: "输入材料\n故事 / 小说 / 会议记录 / 人设 / 世界观 / 开发资料"
+  style.fill: ${blue2}
+  style.stroke: ${blue}
+  style.border-radius: 18
+}
+
+lane1: {
+  label: "上游：理解故事"
+  style.fill: "#FBF7EF"
+  style.stroke: "#E3D6C6"
+  style.border-radius: 20
+
+  reader: {
+    label: "叙事理解层\n读懂故事，拆出主题、人物、情绪、空间、物件与视听潜力"
+    style.fill: ${green2}
+    style.stroke: ${green}
+    style.border-radius: 16
+  }
+  reader_asset: {
+    label: "开发读本资产\n完整开发读本 / 演员读本 / 导演读本 / 制片摘要"
+    style.fill: ${amber2}
+    style.stroke: ${amber}
+    style.border-radius: 16
+  }
+  reader -> reader_asset: "输出"
+}
+
+lane2: {
+  label: "中游：变成可拍结构"
+  style.fill: "#FBF7EF"
+  style.stroke: "#E3D6C6"
+  style.border-radius: 20
+
+  script: {
+    label: "剧作结构层\n把故事变成可拍结构"
+    style.fill: ${green2}
+    style.stroke: ${green}
+    style.border-radius: 16
+  }
+  script_asset: {
+    label: "剧本生产资产\n分场大纲 / 剧本定稿 / 分镜表 / 角色场景道具清单"
+    style.fill: ${amber2}
+    style.stroke: ${amber}
+    style.border-radius: 16
+  }
+  script -> script_asset: "输出"
+}
+
+mood: {
+  label: "审美共识层\n视觉 / 声音 / 质感对齐\n\n把文字资产转成客户能确认、创意能判断、执行能落地的视听方向"
+  style.fill: ${orange2}
+  style.stroke: ${orange}
+  style.stroke-width: 3
+  style.border-radius: 22
+}
+
+mood_asset: {
+  label: "视听方向资产\nCK2 确认文档 / 三视图 HTML / 方向图 / 声音参考 / 采买设计参考"
+  style.fill: ${amber2}
+  style.stroke: ${amber}
+  style.border-radius: 18
+}
+
+lane3: {
+  label: "下游：执行生产"
+  style.fill: "#FBF7EF"
+  style.stroke: "#E3D6C6"
+  style.border-radius: 20
+
+  exec: {
+    label: "执行生产层\n进入拍摄、AI 视频、美术、服化道、调色、声音设计"
+    style.fill: ${amber2}
+    style.stroke: ${amber}
+    style.border-radius: 16
+  }
+  exec_asset: {
+    label: "落地执行\n分镜图 / AI 视频 / 美术设定 / 服化道采买 / 拍摄执行"
+    style.fill: ${red2}
+    style.stroke: ${red}
+    style.border-radius: 16
+  }
+  exec -> exec_asset: "落地"
+}
+
+input -> lane1.reader
+lane1.reader_asset -> lane2.script
+lane2.script_asset -> mood
+mood -> mood_asset
+mood_asset -> lane3.exec
+
+lane1.reader_asset -> mood: "开发读本可直接输入" {
+  style.stroke-dash: 5
+  style.stroke: ${orange}
+}
+lane2.script_asset -> mood: "剧本 / 资产清单可输入" {
+  style.stroke-dash: 5
+  style.stroke: ${orange}
+}
+lane3.exec_asset -> mood: "执行反馈 / 单点修改" {
+  style.stroke-dash: 5
+  style.stroke: ${red}
+}
+mood_asset -> lane2.script: "审美发现反向影响剧本/分镜" {
+  style.stroke-dash: 5
+  style.stroke: ${green}
+}

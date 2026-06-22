@@ -1,0 +1,99 @@
+vars: {
+  green: "#5B8C5A"
+  green2: "#EAF2E7"
+  orange: "#E8724A"
+  orange2: "#FFF0E8"
+  blue: "#5B6C8C"
+  blue2: "#E8EEF3"
+  amber: "#C47A5A"
+  amber2: "#F8E8D8"
+  purple: "#7B6E9E"
+  purple2: "#EFEAF7"
+  red: "#B8564B"
+  red2: "#F8E6E0"
+}
+
+direction: down
+
+title: {
+  label: "审美共识引擎通用工作流\n从模糊审美语言到可执行方向资产"
+  shape: text
+  style.font-size: 28
+  style.bold: true
+}
+
+input: {
+  label: "散乱输入\nbrief / 会议记录 / 文档\n参考图 / 碎片想法 / 一句话需求"
+  style.fill: ${blue2}
+  style.stroke: ${blue}
+  style.border-radius: 14
+}
+noise: {
+  label: "降噪与识别\n项目类型 / 审美词\n共识与分歧 / 禁止方向"
+  style.fill: ${green2}
+  style.stroke: ${green}
+  style.border-radius: 14
+}
+ck1: {
+  label: "CK1 方向确认\n最多 3 个问题\n只确认，不生成"
+  style.fill: ${orange2}
+  style.stroke: ${orange}
+  style.stroke-width: 2
+  style.border-radius: 14
+}
+ck2: {
+  label: "CK2 文字版方向稿\ndata.json\nck2-client.html\nck2-execution.html"
+  style.fill: ${orange2}
+  style.stroke: ${orange}
+  style.stroke-width: 2
+  style.border-radius: 14
+}
+ck3: {
+  label: "CK3 多视图情绪板\nclient / director / execution\n亮暗切换 · 打印亮色"
+  style.fill: ${orange2}
+  style.stroke: ${orange}
+  style.stroke-width: 2
+  style.border-radius: 14
+}
+asset: {
+  label: "执行方向资产\n方向图 / 声音参考\nImage Prompt / 采买参考 / 设计约束"
+  style.fill: ${amber2}
+  style.stroke: ${amber}
+  style.border-radius: 14
+}
+revision: {
+  label: "增量修改回路\n只改指定节点 / 图片 / 维度\n不破坏未点名内容"
+  style.fill: ${red2}
+  style.stroke: ${red}
+  style.stroke-dash: 4
+  style.border-radius: 14
+}
+
+domains: {
+  label: "可覆盖领域\n影视 · 品牌 · PPT · App\n游戏 · 海报 · 网站 · 活动/展陈"
+  style.fill: ${purple2}
+  style.stroke: ${purple}
+  style.border-radius: 16
+}
+
+principles: {
+  label: "关键原则\n共同语言：审美词 → 视觉/声音/节奏参数\n分层交付：甲方 / 决策者 / 执行团队\n唯一真相源：data.json 固化方向资产\n可逆选择：主题切换只属于 view 层"
+  style.fill: "#FFFDF8"
+  style.stroke: "#C47A5A"
+  style.border-radius: 16
+}
+
+input -> noise -> ck1 -> ck2 -> ck3 -> asset -> revision: {
+  style.stroke: ${amber}
+  style.stroke-width: 3
+}
+revision -> ck2: "只回改指定内容" {
+  style.stroke-dash: 4
+  style.stroke: ${red}
+}
+ck1 -> noise: "需要澄清" {
+  style.stroke-dash: 4
+  style.stroke: ${green}
+}
+asset -> domains
+asset -> principles
