@@ -17,11 +17,13 @@
 1. 先从绑定运行时执行 fresh `dotnet so.dll --guide`，再继续 `compile` / `run` / `resume`。
 2. CK 状态判断、触发词识别与 revision 上下文缺口，应优先走 `assets/agents/moodboard-alignment-ck-state-classifier.agent.md`。
 3. 运行时 workflow 副本、事件日志和 compile / run 审计产物默认保持在 Skill 目录外。
+4. 对 `assets/` 下已命名的本地子代理路由，先解析仓库 / 工作区副本，再解析对应的全局安装副本；不要把它替换成自由发挥的通用代理角色。
 
 说明：
 
 - 若处于 SO 治理模式，下面的 Python 命令属于 workflow 节点的底层执行面，不替代 `dotnet so.dll --guide`、`compile`、`run`、`resume` 作为官方工作流控制路径。
 - 若调用者没有启用 SO 治理，才可把下面脚本视为手动执行参考。
+- 每次执行 `dotnet so.dll` 后，都应在会话里回报 Mermaid continuity：若本次生成了新的 Mermaid / HTML / analysis，就报告新路径；若没有，就重复最新已知路径并说明 render 未变化，同时补一句当前 workflow 位置摘要。
 
 ## 路径变量示例
 

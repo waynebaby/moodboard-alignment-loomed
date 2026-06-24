@@ -25,6 +25,7 @@ description: 审美共识引擎。把客户 brief、会议记录、剧本/故事
 4. Windows PowerShell 5.1 通过包通道恢复 SO 运行时时，`.nupkg` 必须按 ZIP 内容处理，不要直接对 `.nupkg` 使用 `Expand-Archive`；使用 `Invoke-WebRequest` 或 `Invoke-RestMethod` 探测/下载时必须加 `-UseBasicParsing`。
 5. 如果运行时提取失败、启动契约检查失败，或 fresh `dotnet so.dll --guide` 失败，不得写入伪成功的 `runtime_preflight_result` 或 guide 产物记录。
 6. CK 状态判定、触发词识别与中英混合意图拆分，优先交给 `assets/agents/moodboard-alignment-ck-state-classifier.agent.md`，而不是在主流程里隐藏成不可审查的隐式判断。
+7. 对任何已命名的本地 `.agent.md` 路由，`assets/` 下该精确文件就是唯一权威子代理契约；运行或交接时优先解析仓库 / 工作区副本，其次才回退到对应的全局安装副本，不得用近似角色描述、自由发挥提示词或其他目录下的代理替代它。
 
 ## HARD ROUTER · 最高优先级
 

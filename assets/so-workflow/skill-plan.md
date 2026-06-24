@@ -16,6 +16,11 @@
 - 已检入的治理说明与节点产物映射
 - 一份可通过 `dotnet so.dll compile` 的 SO-governed workflow 源模板；正式 `run` / `resume` 必须从该模板复制出仓库外的运行时副本
 
+补充约束：
+
+- 对任何 `assets/` 下已命名的本地子代理路由，仓库 / 工作区副本优先于全局安装副本，且该精确 `.agent.md` 文件是唯一权威契约
+- 每次 `dotnet so.dll` CLI 调用后，都要回报 Mermaid continuity
+
 ## Workflow Shape
 
 1. 读取用户输入并调用本地状态分类子代理。
@@ -31,9 +36,13 @@
   - `checkpoint_package`
   - `checkpoint_resume_request`
   - `state_classification_record`
+  - `subagent_resolution_record`
+  - `subagent_dispatch_record`
 - terminal completion families:
   - `data_json_current`
   - `delivery_response`
+  - `subagent_resolution_record`
+  - `subagent_dispatch_record`
   - `updated_views`
   - `workflow_completion_record`
 - specialized families:

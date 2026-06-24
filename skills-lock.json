@@ -2,10 +2,10 @@
   "version": 1,
   "skills": {
     "loom-skill-enhancement": {
-      "source": "waynebaby/techne-loom",
+      "source": "waynebaby/Techne-Loom",
       "sourceType": "github",
       "skillPath": ".github/skills/loom-skill-enhancement/SKILL.md",
-      "computedHash": "ba0914d483292d227f46acd0d6ff4c9343f6367e8af0f08e03baf553bfa0c29c"
+      "computedHash": "865b611c69bc4ce27d37f55c0a1179f42a3c117415d90e77995a6e06efb0a13e"
     }
   }
 }
