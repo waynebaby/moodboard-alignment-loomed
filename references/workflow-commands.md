@@ -1,8 +1,27 @@
 # Workflow Commands
 
-本文件记录 moodboard-alignment / 审美共识引擎的脚本命令。主 `SKILL.md` 只保留流程约束；具体执行命令以此文件为准。
+本文件记录 moodboard-alignment / 审美共识引擎的底层脚本实现面。主 `SKILL.md` 与 `assets/so-workflow/so-template.json` 定义官方治理入口与工作流边界；本文件只说明这些节点在脚本层通常如何落地，不把脚本直跑声明为高于 SO 的官方入口。
 
 > 推荐从任意工作目录使用绝对脚本路径，避免当前目录不同导致命令不可用。
+
+## SO 治理入口
+
+如果当前运行使用 Loom Skill Orchestrator 治理，先以以下已检入资产为准：
+
+- workflow source template：`assets/so-workflow/so-template.json`
+- runtime package lock：`assets/so-workflow/so-package-lock.json`
+- CK 状态分类子代理：`assets/agents/moodboard-alignment-ck-state-classifier.agent.md`
+
+治理约束：
+
+1. 先从绑定运行时执行 fresh `dotnet so.dll --guide`，再继续 `compile` / `run` / `resume`。
+2. CK 状态判断、触发词识别与 revision 上下文缺口，应优先走 `assets/agents/moodboard-alignment-ck-state-classifier.agent.md`。
+3. 运行时 workflow 副本、事件日志和 compile / run 审计产物默认保持在 Skill 目录外。
+
+说明：
+
+- 若处于 SO 治理模式，下面的 Python 命令属于 workflow 节点的底层执行面，不替代 `dotnet so.dll --guide`、`compile`、`run`、`resume` 作为官方工作流控制路径。
+- 若调用者没有启用 SO 治理，才可把下面脚本视为手动执行参考。
 
 ## 路径变量示例
 

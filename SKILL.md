@@ -1,10 +1,30 @@
 ---
-name: moodboard-alignment
+name: moodboard-alignment-loomed
 version: 0.8.9
 description: 审美共识引擎。把客户 brief、会议记录、剧本/故事大纲、品牌/海报/PPT/影视广告/网站 App/游戏等项目中的散乱审美描述，转化为可确认、可执行、可增量修改的文字版情绪板与 HTML 情绪板。触发词：情绪板、moodboard、视觉方向、风格板、参考图、审美对齐、审美共识、高级/有质感/电影感/温暖/干净/年轻化、把 brief 变成情绪板、生成 HTML 情绪板、修改某张参考图/某个节点。
 ---
 
 # 审美共识引擎 Moodboard Alignment
+
+## SO 治理
+
+本 Skill 已由 Loom Skill Orchestrator 增强，当前以 SO 为唯一官方执行治理路径。
+
+- 工作流源模板：`assets/so-workflow/so-template.json`
+- 运行时包锁：`assets/so-workflow/so-package-lock.json`
+- 规划文档：`assets/so-workflow/skill-plan.md`
+- 节点与产物映射：`assets/so-workflow/node-to-file-map.md`
+- CK 状态分类子代理：`assets/agents/moodboard-alignment-ck-state-classifier.agent.md`
+
+治理约束：
+
+1. 日常工作流调整、校验与运行，保持在 `dotnet so.dll --guide`、`dotnet so.dll compile`、`dotnet so.dll run`、`dotnet so.dll resume` 路径上完成；不要把直接修改 workflow JSON 当作常规维护方式。
+2. 运行时 workflow 副本、事件 sidecar、compile 审计产物与 run/resume 审计产物默认放在 Skill 目录外，不污染已检入源文件。
+2.1 已检入的 `assets/so-workflow/so-template.json` 是 source-only 模板权威；即使当前 SO schema 要求它携带 runtime-shaped 字段，也不得在该已检入文件上推进运行态。
+3. 只有当当前 SO 路径完全阻塞，且用户明确批准最小化应急方案时，才允许直接修改运行中的外部 workflow `.json` 副本；且修改后下一步必须立即回到 `dotnet so.dll compile`、`dotnet so.dll run` 或 `dotnet so.dll resume`。
+4. Windows PowerShell 5.1 通过包通道恢复 SO 运行时时，`.nupkg` 必须按 ZIP 内容处理，不要直接对 `.nupkg` 使用 `Expand-Archive`；使用 `Invoke-WebRequest` 或 `Invoke-RestMethod` 探测/下载时必须加 `-UseBasicParsing`。
+5. 如果运行时提取失败、启动契约检查失败，或 fresh `dotnet so.dll --guide` 失败，不得写入伪成功的 `runtime_preflight_result` 或 guide 产物记录。
+6. CK 状态判定、触发词识别与中英混合意图拆分，优先交给 `assets/agents/moodboard-alignment-ck-state-classifier.agent.md`，而不是在主流程里隐藏成不可审查的隐式判断。
 
 ## HARD ROUTER · 最高优先级
 

@@ -1,0 +1,725 @@
+{
+  "instanceId": "moodboard-alignment-root-governance",
+  "templateKind": "so-governed-target-skill",
+  "sourceTemplateMode": "checked-in-source-only",
+  "validation": {
+    "gates": {
+      "gate.workflow_blocked": {
+        "description": "Blocked checkpoint gate for CK1, CK2, or revision-context waits.",
+        "requiredOutputFamilies": [
+          "checkpoint_package",
+          "checkpoint_resume_request",
+          "state_classification_record"
+        ],
+        "requiredMachineReadableOutputFamilies": [
+          "checkpoint_package",
+          "checkpoint_resume_request",
+          "state_classification_record"
+        ],
+        "requiredHumanReviewableOutputFamilies": [
+          "checkpoint_package"
+        ]
+      },
+      "gate.workflow_done": {
+        "description": "Completion gate for CK3 delivery or validated revision delivery.",
+        "requiredOutputFamilies": [
+          "data_json_current",
+          "delivery_response",
+          "updated_views",
+          "workflow_completion_record"
+        ],
+        "requiredMachineReadableOutputFamilies": [
+          "data_json_current",
+          "delivery_response",
+          "updated_views",
+          "workflow_completion_record"
+        ],
+        "requiredHumanReviewableOutputFamilies": [
+          "delivery_response",
+          "updated_views"
+        ]
+      }
+    },
+    "routes": {
+      "route.workflow": {
+        "description": "Primary CK workflow route for the root moodboard-alignment skill.",
+        "requiredTerminalGateIds": [
+          "gate.workflow_done"
+        ],
+        "requiredBlockedGateIds": [
+          "gate.workflow_blocked"
+        ]
+      }
+    },
+    "declaredUserOwnedFields": [
+      "user_message",
+      "project_root",
+      "project_type",
+      "approval_decision",
+      "feedback_notes",
+      "revision_scope",
+      "revision_new_value"
+    ],
+    "reservedRuntimeOwnedFields": [
+      "workflow_file",
+      "event_log_file",
+      "workflow_instance_file",
+      "analysis_file",
+      "mermaid_file",
+      "html_file",
+      "entry_state",
+      "state_classification_record",
+      "data_json_path",
+      "view_artifacts",
+      "validation_report",
+      "generation_report",
+      "revision_report"
+    ]
+  },
+  "startNodeId": "state.start",
+  "currentNodeId": "state.start",
+  "endNodeId": "state.done",
+  "status": "readyToStart",
+  "context": {},
+  "nodes": {
+    "state.start": {
+      "$kind": "state",
+      "id": "state.start",
+      "name": "Start",
+      "description": "Prepare the root skill CK workflow.",
+      "workflowPhase": "01 Entry",
+      "groups": [
+        {
+          "id": "group.start",
+          "transitionIds": [
+            "transition.classify_request"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.route_request": {
+      "$kind": "state",
+      "id": "state.route_request",
+      "name": "Route Request",
+      "description": "Route the request into raw_input, ck1_confirmed, ck2_confirmed, or revision.",
+      "workflowPhase": "01 Entry",
+      "groups": [
+        {
+          "id": "group.route_request",
+          "transitionIds": [
+            "transition.route_raw_input",
+            "transition.route_ck1_confirmed",
+            "transition.route_ck2_confirmed",
+            "transition.route_revision"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.prepare_ck1": {
+      "$kind": "state",
+      "id": "state.prepare_ck1",
+      "name": "Prepare CK1",
+      "description": "Compose the CK1 response template without writing files.",
+      "workflowPhase": "02 CK1",
+      "groups": [
+        {
+          "id": "group.prepare_ck1",
+          "transitionIds": [
+            "transition.compose_ck1"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.wait_ck1": {
+      "$kind": "state",
+      "id": "state.wait_ck1",
+      "name": "Wait CK1 Confirmation",
+      "description": "Block after CK1 until the user explicitly confirms direction for CK2.",
+      "workflowPhase": "02 CK1",
+      "groups": [
+        {
+          "id": "group.wait_ck1",
+          "transitionIds": [
+            "transition.wait_ck1_confirmation"
+          ]
+        }
+      ],
+      "waitBehavior": "waitForSignal"
+    },
+    "state.prepare_ck2": {
+      "$kind": "state",
+      "id": "state.prepare_ck2",
+      "name": "Prepare CK2",
+      "description": "Create data.json draft and render CK2 confirmation views only.",
+      "workflowPhase": "03 CK2",
+      "groups": [
+        {
+          "id": "group.prepare_ck2",
+          "transitionIds": [
+            "transition.render_ck2"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.wait_ck2": {
+      "$kind": "state",
+      "id": "state.wait_ck2",
+      "name": "Wait CK2 Confirmation",
+      "description": "Block after CK2 until the user explicitly authorizes CK3.",
+      "workflowPhase": "03 CK2",
+      "groups": [
+        {
+          "id": "group.wait_ck2",
+          "transitionIds": [
+            "transition.wait_ck2_confirmation"
+          ]
+        }
+      ],
+      "waitBehavior": "waitForSignal"
+    },
+    "state.validate_ck3": {
+      "$kind": "state",
+      "id": "state.validate_ck3",
+      "name": "Validate CK3",
+      "description": "Validate data.json before generation and final render.",
+      "workflowPhase": "04 CK3",
+      "groups": [
+        {
+          "id": "group.validate_ck3",
+          "transitionIds": [
+            "transition.validate_data_json"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.generate_images": {
+      "$kind": "state",
+      "id": "state.generate_images",
+      "name": "Generate Images",
+      "description": "Generate direction images and allow placeholders on failure.",
+      "workflowPhase": "04 CK3",
+      "groups": [
+        {
+          "id": "group.generate_images",
+          "transitionIds": [
+            "transition.generate_images"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.generate_audio": {
+      "$kind": "state",
+      "id": "state.generate_audio",
+      "name": "Generate Audio",
+      "description": "Generate audio references when enabled by project type or meta.sound_enabled.",
+      "workflowPhase": "04 CK3",
+      "groups": [
+        {
+          "id": "group.generate_audio",
+          "transitionIds": [
+            "transition.generate_audio"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.render_ck3": {
+      "$kind": "state",
+      "id": "state.render_ck3",
+      "name": "Render CK3",
+      "description": "Render client, director, and execution HTML views.",
+      "workflowPhase": "04 CK3",
+      "groups": [
+        {
+          "id": "group.render_ck3",
+          "transitionIds": [
+            "transition.render_ck3"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.revision_context": {
+      "$kind": "state",
+      "id": "state.revision_context",
+      "name": "Revision Context",
+      "description": "Decide whether revision has enough context to patch only the named fields.",
+      "workflowPhase": "05 Revision",
+      "groups": [
+        {
+          "id": "group.revision_context",
+          "transitionIds": [
+            "transition.route_revision_ready",
+            "transition.route_revision_missing_context"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.wait_revision_context": {
+      "$kind": "state",
+      "id": "state.wait_revision_context",
+      "name": "Wait Revision Context",
+      "description": "Block until project path, data.json, or original node content is provided.",
+      "workflowPhase": "05 Revision",
+      "groups": [
+        {
+          "id": "group.wait_revision_context",
+          "transitionIds": [
+            "transition.wait_revision_context"
+          ]
+        }
+      ],
+      "waitBehavior": "waitForSignal"
+    },
+    "state.apply_revision": {
+      "$kind": "state",
+      "id": "state.apply_revision",
+      "name": "Apply Revision",
+      "description": "Patch only the named node or field and preserve all other content.",
+      "workflowPhase": "05 Revision",
+      "groups": [
+        {
+          "id": "group.apply_revision",
+          "transitionIds": [
+            "transition.apply_revision"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.render_revision": {
+      "$kind": "state",
+      "id": "state.render_revision",
+      "name": "Render Revision",
+      "description": "Re-render only the affected views after revision validation.",
+      "workflowPhase": "05 Revision",
+      "groups": [
+        {
+          "id": "group.render_revision",
+          "transitionIds": [
+            "transition.render_revision"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.done": {
+      "$kind": "state",
+      "id": "state.done",
+      "name": "Done",
+      "description": "CK workflow finished.",
+      "workflowPhase": "06 Completion",
+      "groups": [],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "transition.classify_request": {
+      "$kind": "command",
+      "id": "transition.classify_request",
+      "name": "Classify request state",
+      "description": "Use the local CK state classifier subagent at `assets/agents/moodboard-alignment-ck-state-classifier.agent.md` to determine state, project type, trigger evidence, and revision context before routing.",
+      "targetNodeId": "state.route_request",
+      "outputPath": "entry_state",
+      "stepKind": "subagentCall",
+      "publishesOutputFamilies": [
+        "state_classification_record"
+      ],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.invokeSubagentGapReview",
+        "environmentKey": "",
+        "parameters": {
+          "subagentRelativePath": "assets/agents/moodboard-alignment-ck-state-classifier.agent.md",
+          "skillHint": "Run assets/agents/moodboard-alignment-ck-state-classifier.agent.md to classify the current user message into raw_input, ck1_confirmed, ck2_confirmed, or revision and return trigger evidence plus revision-context readiness.",
+          "requiredInputs": [
+            "user_message"
+          ]
+        }
+      }
+    },
+    "transition.route_raw_input": {
+      "$kind": "expr",
+      "id": "transition.route_raw_input",
+      "name": "Route raw_input",
+      "description": "Follow the CK1 path for an unconfirmed moodboard brief.",
+      "targetNodeId": "state.prepare_ck1",
+      "stepKind": "conditionBranch",
+      "guardExpression": "entry_state == 'raw_input'",
+      "succeedExpression": "entry_state == 'raw_input'"
+    },
+    "transition.route_ck1_confirmed": {
+      "$kind": "expr",
+      "id": "transition.route_ck1_confirmed",
+      "name": "Route ck1_confirmed",
+      "description": "Follow the CK2 draft path after CK1 confirmation.",
+      "targetNodeId": "state.prepare_ck2",
+      "stepKind": "conditionBranch",
+      "guardExpression": "entry_state == 'ck1_confirmed'",
+      "succeedExpression": "entry_state == 'ck1_confirmed'"
+    },
+    "transition.route_ck2_confirmed": {
+      "$kind": "expr",
+      "id": "transition.route_ck2_confirmed",
+      "name": "Route ck2_confirmed",
+      "description": "Follow the CK3 delivery path after explicit CK2 authorization.",
+      "targetNodeId": "state.validate_ck3",
+      "stepKind": "conditionBranch",
+      "guardExpression": "entry_state == 'ck2_confirmed'",
+      "succeedExpression": "entry_state == 'ck2_confirmed'"
+    },
+    "transition.route_revision": {
+      "$kind": "expr",
+      "id": "transition.route_revision",
+      "name": "Route revision",
+      "description": "Follow the revision path for single-node or single-field edits.",
+      "targetNodeId": "state.revision_context",
+      "stepKind": "conditionBranch",
+      "guardExpression": "entry_state == 'revision'",
+      "succeedExpression": "entry_state == 'revision'"
+    },
+    "transition.compose_ck1": {
+      "$kind": "command",
+      "id": "transition.compose_ck1",
+      "name": "Compose CK1 checkpoint package",
+      "description": "Generate the CK1 template response with no files, no option list, and no more than three confirmation questions.",
+      "targetNodeId": "state.wait_ck1",
+      "outputPath": "checkpoint_package",
+      "stepKind": "toolCall",
+      "publishesOutputFamilies": [
+        "checkpoint_package",
+        "ck1_template_response"
+      ],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.composeCk1Template",
+        "environmentKey": "",
+        "parameters": {
+          "requiredInputs": [
+            "user_message",
+            "entry_state"
+          ],
+          "stateClassifierRelativePath": "assets/agents/moodboard-alignment-ck-state-classifier.agent.md"
+        }
+      }
+    },
+    "transition.wait_ck1_confirmation": {
+      "$kind": "command",
+      "id": "transition.wait_ck1_confirmation",
+      "name": "Wait for CK1 confirmation",
+      "description": "Block until the user explicitly confirms the direction for CK2 and weave back a checkpoint resume request.",
+      "targetNodeId": "state.prepare_ck2",
+      "outputPath": "checkpoint_resume_request",
+      "stepKind": "waitResume",
+      "blockedRoutes": [
+        "route.workflow"
+      ],
+      "satisfiesGateIds": [
+        "gate.workflow_blocked"
+      ],
+      "publishesBlockedOutputFamilies": [
+        "checkpoint_package",
+        "checkpoint_resume_request",
+        "state_classification_record"
+      ],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.waitForCheckpointConfirmation",
+        "environmentKey": "",
+        "parameters": {
+          "resumeOutputKey": "checkpoint_resume_request",
+          "requiredInputs": [
+            "approval_decision",
+            "feedback_notes",
+            "checkpoint_resume_request"
+          ]
+        }
+      }
+    },
+    "transition.render_ck2": {
+      "$kind": "command",
+      "id": "transition.render_ck2",
+      "name": "Render CK2 checkpoint",
+      "description": "Create the data.json draft and render ck2-client.html plus ck2-execution.html without generating images, audio, or final views.",
+      "targetNodeId": "state.wait_ck2",
+      "outputPath": "checkpoint_package",
+      "stepKind": "toolCall",
+      "publishesOutputFamilies": [
+        "checkpoint_package",
+        "data_json_draft",
+        "ck2_client_html",
+        "ck2_execution_html"
+      ],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.renderCk2Checkpoint",
+        "environmentKey": "",
+        "parameters": {
+          "requiredInputs": [
+            "project_root",
+            "project_type",
+            "entry_state"
+          ],
+          "dataSchemaRef": "references/data-schema.md",
+          "workflowCommandsRef": "references/workflow-commands.md"
+        }
+      }
+    },
+    "transition.wait_ck2_confirmation": {
+      "$kind": "command",
+      "id": "transition.wait_ck2_confirmation",
+      "name": "Wait for CK2 confirmation",
+      "description": "Block until the user explicitly authorizes CK3 and weave back a checkpoint resume request.",
+      "targetNodeId": "state.validate_ck3",
+      "outputPath": "checkpoint_resume_request",
+      "stepKind": "waitResume",
+      "blockedRoutes": [
+        "route.workflow"
+      ],
+      "satisfiesGateIds": [
+        "gate.workflow_blocked"
+      ],
+      "publishesBlockedOutputFamilies": [
+        "checkpoint_package",
+        "checkpoint_resume_request",
+        "state_classification_record"
+      ],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.waitForCheckpointConfirmation",
+        "environmentKey": "",
+        "parameters": {
+          "resumeOutputKey": "checkpoint_resume_request",
+          "requiredInputs": [
+            "approval_decision",
+            "feedback_notes",
+            "checkpoint_resume_request"
+          ]
+        }
+      }
+    },
+    "transition.validate_data_json": {
+      "$kind": "command",
+      "id": "transition.validate_data_json",
+      "name": "Validate data.json",
+      "description": "Run strict validation before CK3 generation.",
+      "targetNodeId": "state.generate_images",
+      "outputPath": "validation_report",
+      "stepKind": "toolCall",
+      "command": {
+        "kind": "tool",
+        "name": "workflow.validateMoodboardData",
+        "environmentKey": "",
+        "parameters": {
+          "requiredInputs": [
+            "project_root"
+          ],
+          "scriptPath": "scripts/validate_data.py"
+        }
+      }
+    },
+    "transition.generate_images": {
+      "$kind": "command",
+      "id": "transition.generate_images",
+      "name": "Generate direction images",
+      "description": "Generate node images and mark failures as placeholders instead of aborting the whole workflow.",
+      "targetNodeId": "state.generate_audio",
+      "outputPath": "generation_report",
+      "stepKind": "toolCall",
+      "publishesOutputFamilies": [
+        "final_image_assets"
+      ],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.generateMoodboardImages",
+        "environmentKey": "",
+        "parameters": {
+          "requiredInputs": [
+            "project_root"
+          ],
+          "scriptPath": "scripts/generate_images.py"
+        }
+      }
+    },
+    "transition.generate_audio": {
+      "$kind": "command",
+      "id": "transition.generate_audio",
+      "name": "Generate audio references",
+      "description": "Generate audio only when the project type or meta.sound_enabled requires it.",
+      "targetNodeId": "state.render_ck3",
+      "outputPath": "generation_report",
+      "stepKind": "toolCall",
+      "publishesOutputFamilies": [
+        "final_audio_assets"
+      ],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.generateMoodboardAudioWhenEnabled",
+        "environmentKey": "",
+        "parameters": {
+          "requiredInputs": [
+            "project_root",
+            "project_type"
+          ],
+          "projectTemplateRef": "references/project-templates.md",
+          "scriptPath": "scripts/generate_audio.py"
+        }
+      }
+    },
+    "transition.render_ck3": {
+      "$kind": "command",
+      "id": "transition.render_ck3",
+      "name": "Render final views",
+      "description": "Render the final client, director, and execution HTML views and complete the route.",
+      "targetNodeId": "state.done",
+      "outputPath": "delivery_response",
+      "stepKind": "toolCall",
+      "terminalRoutes": [
+        "route.workflow"
+      ],
+      "satisfiesGateIds": [
+        "gate.workflow_done"
+      ],
+      "publishesOutputFamilies": [
+        "data_json_current",
+        "delivery_response",
+        "updated_views",
+        "workflow_completion_record",
+        "index_client_html",
+        "index_director_html",
+        "index_execution_html"
+      ],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.renderMoodboardFinalViews",
+        "environmentKey": "",
+        "parameters": {
+          "requiredInputs": [
+            "project_root",
+            "project_type"
+          ],
+          "scriptPath": "scripts/render.py",
+          "viewTemplateRef": "references/view-templates.md",
+          "layoutRef": "references/html-layout.md"
+        }
+      }
+    },
+    "transition.route_revision_ready": {
+      "$kind": "expr",
+      "id": "transition.route_revision_ready",
+      "name": "Revision has context",
+      "description": "Continue to apply the revision when the current project context is available.",
+      "targetNodeId": "state.apply_revision",
+      "stepKind": "conditionBranch",
+      "guardExpression": "has_revision_context == true",
+      "succeedExpression": "has_revision_context == true"
+    },
+    "transition.route_revision_missing_context": {
+      "$kind": "expr",
+      "id": "transition.route_revision_missing_context",
+      "name": "Revision missing context",
+      "description": "Block and request data.json, project path, or original node content when revision context is missing.",
+      "targetNodeId": "state.wait_revision_context",
+      "stepKind": "conditionBranch",
+      "guardExpression": "has_revision_context != true",
+      "succeedExpression": "has_revision_context != true"
+    },
+    "transition.wait_revision_context": {
+      "$kind": "command",
+      "id": "transition.wait_revision_context",
+      "name": "Wait for revision context",
+      "description": "Block until revision context is provided and weave back a checkpoint resume request.",
+      "targetNodeId": "state.apply_revision",
+      "outputPath": "checkpoint_resume_request",
+      "stepKind": "waitResume",
+      "blockedRoutes": [
+        "route.workflow"
+      ],
+      "satisfiesGateIds": [
+        "gate.workflow_blocked"
+      ],
+      "publishesBlockedOutputFamilies": [
+        "checkpoint_package",
+        "checkpoint_resume_request",
+        "state_classification_record"
+      ],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.waitForRevisionContext",
+        "environmentKey": "",
+        "parameters": {
+          "resumeOutputKey": "checkpoint_resume_request",
+          "requiredInputs": [
+            "project_root",
+            "revision_scope",
+            "checkpoint_resume_request"
+          ]
+        }
+      }
+    },
+    "transition.apply_revision": {
+      "$kind": "command",
+      "id": "transition.apply_revision",
+      "name": "Apply revision delta",
+      "description": "Patch only the named node or field, then keep all untouched nodes unchanged.",
+      "targetNodeId": "state.render_revision",
+      "outputPath": "revision_report",
+      "stepKind": "toolCall",
+      "publishesOutputFamilies": [
+        "revision_audit_log"
+      ],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.applyMoodboardRevision",
+        "environmentKey": "",
+        "parameters": {
+          "requiredInputs": [
+            "project_root",
+            "revision_scope",
+            "revision_new_value"
+          ],
+          "dataSchemaRef": "references/data-schema.md"
+        }
+      }
+    },
+    "transition.render_revision": {
+      "$kind": "command",
+      "id": "transition.render_revision",
+      "name": "Render affected revision views",
+      "description": "Re-render only the affected outputs after revision validation and finish the route.",
+      "targetNodeId": "state.done",
+      "outputPath": "delivery_response",
+      "stepKind": "toolCall",
+      "terminalRoutes": [
+        "route.workflow"
+      ],
+      "satisfiesGateIds": [
+        "gate.workflow_done"
+      ],
+      "publishesOutputFamilies": [
+        "data_json_current",
+        "delivery_response",
+        "updated_views",
+        "workflow_completion_record",
+        "revision_audit_log"
+      ],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.renderMoodboardRevisionViews",
+        "environmentKey": "",
+        "parameters": {
+          "requiredInputs": [
+            "project_root",
+            "revision_scope"
+          ],
+          "scriptPath": "scripts/render.py"
+        }
+      }
+    }
+  }
+}
