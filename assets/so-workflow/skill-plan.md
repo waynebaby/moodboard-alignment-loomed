@@ -20,6 +20,7 @@
 
 - 对任何 `assets/` 下已命名的本地子代理路由，仓库 / 工作区副本优先于全局安装副本，且该精确 `.agent.md` 文件是唯一权威契约
 - 每次 `dotnet so.dll` CLI 调用后，都要回报 Mermaid continuity
+- 当前 update 切片目标是把根技能升级到 beta `0.2.144-beta` 的 compile-ready 治理状态；若没有真实 public `run` / `resume` 链路，则结果必须标记为治理集成完成而非 official run evidence
 
 ## Workflow Shape
 

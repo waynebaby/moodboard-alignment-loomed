@@ -2,11 +2,11 @@
 
 ## Bound Runtime
 
-- runtime channel: `released`
-- resolved version: `0.2.138`
+- runtime channel: `beta`
+- resolved version: `0.2.144-beta`
 - checked-in authority: `assets/so-workflow/so-package-lock.json`
 - reproducible fresh guide command: `dotnet .\\so.dll --guide --lang en`
-- runtime proof summary: the published `0.2.138` bundle was restored and the fresh guide command completed successfully during this enhancement pass
+- runtime proof summary: the published `0.2.144-beta` bundle was restored and the fresh guide command completed successfully during this enhancement pass
 
 > 运行时 proof 与 compile 审计文件保存在 Skill 目录外，它们是环境局部产物，不作为仓库内可移植路径承诺。仓库内只保留可复现所需的版本锁、命令形态和结果摘要。
 
@@ -16,6 +16,13 @@
 2. 当前发布包布局实际位于 `lib/net9.0`，而不是旧假设中的 `tools/net10.0/any`。
 3. 当前发布包在提取态仍未暴露 `so.deps.json`，因此 fresh guide 证明采用包内可运行入口 `dotnet .\\so.dll --guide --lang en` 完成。
 4. 后续若包布局再次变化，应先更新 `so-package-lock.json` 注释和本文件，再继续新的 enhancement pass。
+
+## Execution Status For This Slice
+
+- current slice status: `governance integration complete / compile-ready`
+- public `dotnet so.dll run` chain: `pending`
+- matching public `dotnet so.dll resume` chain for a blocked run: `pending`
+- because no public run/resume chain exists yet, this slice must not claim official governed run evidence
 
 ## Source Template Boundary
 
@@ -31,8 +38,8 @@
 
 ## Latest Known Mermaid Continuity
 
-- latest mermaid artifact suffix: `compile-root-skill-0.2.138-r5/wf-moodboard-alignment-root-governance/step-0001-compiled/workflow.mermaid.md`
-- latest html artifact suffix: `compile-root-skill-0.2.138-r5/wf-moodboard-alignment-root-governance/step-0001-compiled/workflow.html`
-- latest analysis artifact suffix: `compile-root-skill-0.2.138-r5/wf-moodboard-alignment-root-governance/step-0001-compiled/workflow.analysis.json`
+- latest mermaid artifact suffix: `compile-root-skill-0.2.144-beta/wf-moodboard-alignment-root-governance/step-0001-compiled/workflow.mermaid.md`
+- latest html artifact suffix: `compile-root-skill-0.2.144-beta/wf-moodboard-alignment-root-governance/step-0001-compiled/workflow.html`
+- latest analysis artifact suffix: `compile-root-skill-0.2.144-beta/wf-moodboard-alignment-root-governance/step-0001-compiled/workflow.analysis.json`
 - audit root convention: keep these audit artifacts outside the repository and report the absolute local path only in-session
 - workflow location summary: checked-in source template at `assets/so-workflow/so-template.json`; official run/resume must use an external runtime copy

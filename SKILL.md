@@ -10,6 +10,12 @@ description: 审美共识引擎。把客户 brief、会议记录、剧本/故事
 
 本 Skill 已由 Loom Skill Orchestrator 增强，当前以 SO 为唯一官方执行治理路径。
 
+当前切片执行状态：
+
+- 已完成 compile-ready 的治理集成，当前已具备已检入模板、包锁、子代理权威路由和 `dotnet so.dll compile` 校验结果。
+- 当前切片**尚未**建立至少一条公开 `dotnet so.dll run` 链路；若未来该链路发生阻塞，也**尚未**建立与之匹配的公开 `dotnet so.dll resume` 链路。
+- 因此，本次结果只能声明为治理集成完成 / compile-ready；不得把 `dotnet so.dll --guide` 或 `dotnet so.dll compile` 成功表述为官方 governed run evidence。
+
 - 工作流源模板：`assets/so-workflow/so-template.json`
 - 运行时包锁：`assets/so-workflow/so-package-lock.json`
 - 规划文档：`assets/so-workflow/skill-plan.md`
@@ -26,6 +32,7 @@ description: 审美共识引擎。把客户 brief、会议记录、剧本/故事
 5. 如果运行时提取失败、启动契约检查失败，或 fresh `dotnet so.dll --guide` 失败，不得写入伪成功的 `runtime_preflight_result` 或 guide 产物记录。
 6. CK 状态判定、触发词识别与中英混合意图拆分，优先交给 `assets/agents/moodboard-alignment-ck-state-classifier.agent.md`，而不是在主流程里隐藏成不可审查的隐式判断。
 7. 对任何已命名的本地 `.agent.md` 路由，`assets/` 下该精确文件就是唯一权威子代理契约；运行或交接时优先解析仓库 / 工作区副本，其次才回退到对应的全局安装副本，不得用近似角色描述、自由发挥提示词或其他目录下的代理替代它。
+8. `dotnet so.dll compile` 只代表治理模板通过验证，不代表已经发生官方 governed run；只有建立至少一条公开 `dotnet so.dll run` 链路，并在该链路阻塞时建立匹配的公开 `dotnet so.dll resume` 链路后，才可声明 official governed run evidence。
 
 ## HARD ROUTER · 最高优先级
 

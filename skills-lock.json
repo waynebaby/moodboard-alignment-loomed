@@ -1,11 +1,17 @@
 {
   "version": 1,
   "skills": {
+    "loom-plan-execution": {
+      "source": "waynebaby/Techne-Loom",
+      "sourceType": "github",
+      "skillPath": ".github/skills/loom-plan-execution/SKILL.md",
+      "computedHash": "6b6b7d72ef98757346ec1496c3c33db0ed4bade279f3dcd5049e568919f371b1"
+    },
     "loom-skill-enhancement": {
       "source": "waynebaby/Techne-Loom",
       "sourceType": "github",
       "skillPath": ".github/skills/loom-skill-enhancement/SKILL.md",
-      "computedHash": "865b611c69bc4ce27d37f55c0a1179f42a3c117415d90e77995a6e06efb0a13e"
+      "computedHash": "80ccdb197c691d3c24128013a17226409bb442e33b077f5855a8825308b9cbf0"
     }
   }
 }

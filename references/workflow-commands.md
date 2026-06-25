@@ -18,6 +18,7 @@
 2. CK 状态判断、触发词识别与 revision 上下文缺口，应优先走 `assets/agents/moodboard-alignment-ck-state-classifier.agent.md`。
 3. 运行时 workflow 副本、事件日志和 compile / run 审计产物默认保持在 Skill 目录外。
 4. 对 `assets/` 下已命名的本地子代理路由，先解析仓库 / 工作区副本，再解析对应的全局安装副本；不要把它替换成自由发挥的通用代理角色。
+5. `dotnet so.dll compile` 属于治理验证面，不属于官方 run evidence；若当前切片还没有一条公开 `dotnet so.dll run` / `resume` 链路，就只能表述为 compile-ready。
 
 说明：
 
