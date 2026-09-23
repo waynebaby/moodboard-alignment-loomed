@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "moodboard-alignment.contract.v1",
+  "targetSkill": "moodboard-alignment-loomed",
+  "authority": {
+    "path": "SKILL.md",
+    "sections": [
+      "SO 治理",
+      "HARD ROUTER",
+      "状态机",
+      "CK1_TEMPLATE",
+      "CK2_TEMPLATE",
+      "CK3",
+      "REVISION_TEMPLATE",
+      "禁止行为",
+      "失败兜底"
+    ]
+  },
+  "businessOutcome": "Turn ambiguous visual preferences into an explicitly confirmed, executable, incrementally revisable moodboard while preserving the user's approval boundaries.",
+  "projectTypes": ["film", "poster", "ppt", "game", "app", "mv", "brand"],
+  "states": {
+    "raw_input": {
+      "allowed": ["Interpret the brief and ask up to three confirmation questions."],
+      "forbidden": ["Write files", "Generate documents, images, or HTML", "Present multiple full directions"]
+    },
+    "ck1_confirmed": {
+      "allowed": ["Create or update the pending data.json draft", "Render CK2 client and execution views"],
+      "forbidden": ["Generate images or audio", "Render final CK3 views"]
+    },
+    "ck2_confirmed": {
+      "entryCondition": "The user has received or reviewed CK2 and explicitly authorizes CK3, or explicitly skips confirmation.",
+      "allowed": ["Validate data.json", "Generate requested image and audio assets", "Render final views"]
+    },
+    "revision": {
+      "allowed": ["Change only the named node, image, or dimension and rerender affected views"],
+      "requiredContext": ["project path or current data.json or complete original target-node content", "named revision scope"]
+    }
+  },
+  "invariants": [
+    "CK1 and CK2 are stop points; confirmation at CK1 does not authorize CK3.",
+    "CK1 and CK2 WaitResume may advance only when checkpoint_resume_request.approval_decision is exactly approved; missing, rejected, or any other value must remain blocked.",
+    "Strict CK3 data validation passes only when passed, exit_code, errors, and warnings are all present with valid types and report passed=true, exit_code 0, errors 0, and warnings 0; a failure or missing field requires a user-selected recovery path, a fresh CK2 render, and new explicit CK2 approval before validation retry.",
+    "Validation failure or recovery choices must never advance directly to image, audio, or final-view generation.",
+    "data.json is the source of truth for CK2, CK3, and revision.",
+    "Revision protects all unmentioned nodes and fields.",
+    "Do not claim official governed run evidence from guide or compile success.",
+    "Official governed completion requires a public run chain on the exact external workflow copy to reach final Done; if that run blocks, a matching public resume chain must continue it to final Done."
+  ],
+  "deliverables": {
+    "ck2": ["data.json draft", "ck2-client.html", "ck2-execution.html"],
+    "ck3": ["index-client.html", "index-director.html", "index-execution.html"],
+    "revision": ["Updated data.json", "Only affected rendered views"]
+  },
+  "workflowDesignConstraints": [
+    "Preserve the exact local classifier authority at assets/agents/moodboard-alignment-ck-state-classifier.agent.md.",
+    "Do not claim an output family is produced unless an exact-runtime-supported emitter or explicit external projection provides it.",
+    "Treat workflow.* tool names as unresolved adapters until an available executor or same-runtime projection contract proves them."
+  ]
+}

@@ -12,9 +12,9 @@ description: 审美共识引擎。把客户 brief、会议记录、剧本/故事
 
 当前切片执行状态：
 
-- 已完成 compile-ready 的治理集成，当前已具备已检入模板、包锁、子代理权威路由和 `dotnet so.dll compile` 校验结果。
+- 已完成 compile-ready 的治理集成，当前已具备已检入模板、包锁、子代理权威路由和 exact published runtime 0.3.318 的 guide/compile 证据。
 - 当前切片**尚未**建立至少一条公开 `dotnet so.dll run` 链路；若未来该链路发生阻塞，也**尚未**建立与之匹配的公开 `dotnet so.dll resume` 链路。
-- 因此，本次结果只能声明为治理集成完成 / compile-ready；不得把 `dotnet so.dll --guide` 或 `dotnet so.dll compile` 成功表述为官方 governed run evidence。
+- 因此，本次结果只能声明为治理集成完成 / compile-ready；不得把 `--guide` 或 `compile` 成功表述为官方 governed run evidence。
 
 - 工作流源模板：`assets/so-workflow/so-template.json`
 - 运行时包锁：`assets/so-workflow/so-package-lock.json`
@@ -29,10 +29,14 @@ description: 审美共识引擎。把客户 brief、会议记录、剧本/故事
 2.1 已检入的 `assets/so-workflow/so-template.json` 是 source-only 模板权威；即使当前 SO schema 要求它携带 runtime-shaped 字段，也不得在该已检入文件上推进运行态。
 3. 只有当当前 SO 路径完全阻塞，且用户明确批准最小化应急方案时，才允许直接修改运行中的外部 workflow `.json` 副本；且修改后下一步必须立即回到 `dotnet so.dll compile`、`dotnet so.dll run` 或 `dotnet so.dll resume`。
 4. Windows PowerShell 5.1 通过包通道恢复 SO 运行时时，`.nupkg` 必须按 ZIP 内容处理，不要直接对 `.nupkg` 使用 `Expand-Archive`；使用 `Invoke-WebRequest` 或 `Invoke-RestMethod` 探测/下载时必须加 `-UseBasicParsing`。
+4.1 若 exact-version NuGet `.nupkg` 返回成功、但 flat-container 的 `.nupkg.sha512` 返回 404，不要立即判定包不可用，也不要手工写入或伪造 sidecar：读取 NuGet registration leaf 的 `catalogEntry` 链接，再从该 catalog 条目读取 `packageHash` / `packageHashAlgorithm` / `packageSize`；用临时目录中的精确版本 `PackageReference` 执行 `dotnet restore`，让 NuGet 客户端将包和 sidecar 安装到标准 global-packages 缓存。对缓存 `.nupkg` 计算 SHA-512，并要求本地计算值、NuGet 客户端生成的 `.nupkg.sha512`、catalog 官方 `packageHash` 三者完全一致，且 `packageHashAlgorithm` 为 `SHA512`、包大小与 catalog 一致。只有随后 exact-version SO resolver 成功验证缓存并生成 resolver-owned descriptor，才算 runtime preflight 通过；descriptor 仍失败则保留失败证据并停止，不绕过 resolver。
+4.2 0.3.318 实证：`Techne.Loom.SkillOrchestrator.Runtime.win-x64` 的 NuGet `.nupkg` 可下载，`.nupkg.sha512` sidecar 在 flat-container 与 global CDN 均返回 404；NuGet catalog 提供官方 SHA-512。通过精确 `PackageReference` 的 NuGet restore 后，global-packages 中的 sidecar 与本地计算哈希、catalog `packageHash` 一致；SO 0.3.318 resolver 随后成功复用缓存并生成 `self-contained` / `win-x64` descriptor。此流程没有手写 sidecar。
 5. 如果运行时提取失败、启动契约检查失败，或 fresh `dotnet so.dll --guide` 失败，不得写入伪成功的 `runtime_preflight_result` 或 guide 产物记录。
 6. CK 状态判定、触发词识别与中英混合意图拆分，优先交给 `assets/agents/moodboard-alignment-ck-state-classifier.agent.md`，而不是在主流程里隐藏成不可审查的隐式判断。
 7. 对任何已命名的本地 `.agent.md` 路由，`assets/` 下该精确文件就是唯一权威子代理契约；运行或交接时优先解析仓库 / 工作区副本，其次才回退到对应的全局安装副本，不得用近似角色描述、自由发挥提示词或其他目录下的代理替代它。
-8. `dotnet so.dll compile` 只代表治理模板通过验证，不代表已经发生官方 governed run；只有建立至少一条公开 `dotnet so.dll run` 链路，并在该链路阻塞时建立匹配的公开 `dotnet so.dll resume` 链路后，才可声明 official governed run evidence。
+8. `dotnet so.dll compile` 只代表治理模板通过验证，不代表已经发生官方 governed run；只有公开 `dotnet so.dll run` 链路在精确外部 workflow 副本上到达最终 `Done`，或该链路阻塞后由匹配的公开 `dotnet so.dll resume` 链路继续到达最终 `Done`，才可声明 official governed completion evidence。
+9. CK1 / CK2 的 WaitResume 必须通过结构化 `checkpoint_resume_request` 回传 `approval_decision: "approved"` 才能继续；缺少、拒绝或其他值均不得进入下一阶段。CK1 的批准只允许进入 CK2，CK2 的明确批准才允许进入 CK3。
+10. CK3 的 `validate_data.py --strict` 只有在 `passed`、`exit_code`、`errors`、`warnings` 四个门禁字段均存在且类型有效，并且进程退出码为 0、errors 与 warnings 均为 0 时才算通过；缺字段、类型无效或任何校验问题都必须回到 CK2 recovery checkpoint，由用户选择“按报告修复”或“保持数据不变返回 CK2”。任何修正都必须重新渲染 CK2 并取得新的明确 CK2 批准，之后才可重试校验；不得从失败报告直接进入图片、音频或最终视图生成。
 
 ## HARD ROUTER · 最高优先级
 

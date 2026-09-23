@@ -1,56 +1,103 @@
 {
   "instanceId": "moodboard-alignment-root-governance",
   "templateKind": "so-governed-target-skill",
+  "taskType": "skill_enhancement",
+  "workflowKind": "target_skill_enhancement",
+  "caseId": "moodboard-alignment-root-governance",
+  "runId": "template:root-governance",
+  "runtimeBinding": "dotnet-so",
+  "runtimeVersion": "0.3.318",
+  "expressionBinding": {
+    "language": "csharp",
+    "languageVersion": "12",
+    "contractId": "loom.expression.csharp",
+    "contractVersion": "1",
+    "requiredExpressionCapabilities": [],
+    "compileFeedbackContract": "detailedCompileFeedbackV1"
+  },
   "sourceTemplateMode": "checked-in-source-only",
   "validation": {
+    "governanceEntry": {
+      "preferredTransport": "mcp_stdio",
+      "allowedTransports": ["mcp_stdio", "cli"],
+      "evidenceFamily": "mcp_startup_evidence",
+      "mcpAttemptEvidenceFamily": "mcp_registration_attempt_evidence",
+      "runtimeLaunchDescriptorField": "runtime_launch_descriptor_ref",
+      "preDispatchCliFallbackReasons": [
+        "mcp_transport_unavailable",
+        "mcp_handshake_unsupported",
+        "mcp_tool_unavailable"
+      ]
+    },
     "gates": {
+      "gate.bootstrap_mcp_ready": {
+        "description": "The exact runtime has recorded successful MCP startup evidence or the allowed pre-dispatch CLI fallback.",
+        "passExpression": {
+          "kind": "predicate",
+          "source": "context.Get<object>(\"mcp_startup_evidence\") != null",
+          "entryPoint": "Evaluate",
+          "resultType": "bool"
+        },
+        "requiredOutputFamilies": ["mcp_startup_evidence"],
+        "requiredMachineReadableOutputFamilies": ["mcp_startup_evidence"],
+        "requiredHumanReviewableOutputFamilies": [],
+        "valueSemantics": {"mcp_startup_evidence": "nonEmptyObject"},
+        "instanceBinding": "current_workflow_instance",
+        "failureGuidance": {
+          "summary": "The runtime connection has not been verified; the skill files remain unchanged.",
+          "nextAction": "Use the selected runtime descriptor to complete MCP startup or its allowed pre-dispatch fallback before continuing.",
+          "evidenceReferences": [
+            {"path": "SKILL.md", "startLine": 27, "endLine": 27, "quote": "dotnet so.dll --guide"}
+          ]
+        }
+      },
       "gate.workflow_blocked": {
         "description": "Blocked checkpoint gate for CK1, CK2, or revision-context waits.",
-        "requiredOutputFamilies": [
-          "checkpoint_package",
-          "checkpoint_resume_request",
-          "state_classification_record",
-          "subagent_resolution_record",
-          "subagent_dispatch_record"
-        ],
-        "requiredMachineReadableOutputFamilies": [
-          "checkpoint_package",
-          "checkpoint_resume_request",
-          "state_classification_record",
-          "subagent_resolution_record",
-          "subagent_dispatch_record"
-        ],
-        "requiredHumanReviewableOutputFamilies": [
-          "checkpoint_package"
-        ]
+        "passExpression": {
+          "kind": "predicate",
+          "source": "context.Get<object>(\"checkpoint_resume_request\") != null",
+          "entryPoint": "Evaluate",
+          "resultType": "bool"
+        },
+        "requiredOutputFamilies": ["checkpoint_resume_request"],
+        "requiredMachineReadableOutputFamilies": ["checkpoint_resume_request"],
+        "requiredHumanReviewableOutputFamilies": [],
+        "valueSemantics": {"checkpoint_resume_request": "nonEmptyObject"},
+        "instanceBinding": "current_workflow_instance",
+        "failureGuidance": {
+          "summary": "The review checkpoint has not recorded its resume request; existing moodboard files remain unchanged.",
+          "nextAction": "Record the user's approval or revision context in the checkpoint resume request before continuing.",
+          "evidenceReferences": [
+            {"path": "SKILL.md", "startLine": 35, "endLine": 35, "quote": "official governed run evidence"}
+          ]
+        }
       },
       "gate.workflow_done": {
         "description": "Completion gate for CK3 delivery or validated revision delivery.",
-        "requiredOutputFamilies": [
-          "data_json_current",
-          "delivery_response",
-          "subagent_resolution_record",
-          "subagent_dispatch_record",
-          "updated_views",
-          "workflow_completion_record"
-        ],
-        "requiredMachineReadableOutputFamilies": [
-          "data_json_current",
-          "delivery_response",
-          "subagent_resolution_record",
-          "subagent_dispatch_record",
-          "updated_views",
-          "workflow_completion_record"
-        ],
-        "requiredHumanReviewableOutputFamilies": [
-          "delivery_response",
-          "updated_views"
-        ]
+        "passExpression": {
+          "kind": "predicate",
+          "source": "context.Get<string>(\"delivery_response\") != null",
+          "entryPoint": "Evaluate",
+          "resultType": "bool"
+        },
+        "requiredOutputFamilies": ["delivery_response"],
+        "requiredMachineReadableOutputFamilies": ["delivery_response"],
+        "requiredHumanReviewableOutputFamilies": ["delivery_response"],
+        "valueSemantics": {"delivery_response": "nonEmptyString"},
+        "instanceBinding": "current_workflow_instance",
+        "failureGuidance": {
+          "summary": "No final delivery response was recorded; the prior project data and views remain the current files.",
+          "nextAction": "Complete data validation and final rendering, then record the resulting delivery response.",
+          "evidenceReferences": [
+            {"path": "SKILL.md", "startLine": 35, "endLine": 35, "quote": "official governed run evidence"}
+          ]
+        }
       }
     },
     "routes": {
       "route.workflow": {
         "description": "Primary CK workflow route for the root moodboard-alignment skill.",
+        "requiredGateIds": ["gate.bootstrap_mcp_ready"],
         "requiredTerminalGateIds": [
           "gate.workflow_done"
         ],
@@ -86,12 +133,26 @@
       "revision_report"
     ]
   },
-  "startNodeId": "state.start",
-  "currentNodeId": "state.start",
+  "startNodeId": "state.runtime_preflight",
+  "currentNodeId": "state.runtime_preflight",
   "endNodeId": "state.done",
   "status": "readyToStart",
   "context": {},
   "nodes": {
+    "state.runtime_preflight": {
+      "$kind": "state",
+      "id": "state.runtime_preflight",
+      "name": "Runtime Preflight",
+      "description": "Resolve the exact published runtime launch descriptor before MCP registration.",
+      "workflowPhase": "01 Entry",
+      "groups": [
+        {
+          "id": "group.runtime_preflight",
+          "transitionIds": ["transition.runtime_preflight"]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
     "state.start": {
       "$kind": "state",
       "id": "state.start",
@@ -102,7 +163,7 @@
         {
           "id": "group.start",
           "transitionIds": [
-            "transition.resolve_classifier_authority"
+            "transition.mcp_governance_entry"
           ]
         }
       ],
@@ -120,6 +181,20 @@
           "transitionIds": [
             "transition.classify_request"
           ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.governance_entry": {
+      "$kind": "state",
+      "id": "state.governance_entry",
+      "name": "Governance Entry",
+      "description": "Continue after MCP startup evidence is recorded.",
+      "workflowPhase": "01 Entry",
+      "groups": [
+        {
+          "id": "group.governance_entry",
+          "transitionIds": ["transition.resolve_classifier_authority"]
         }
       ],
       "waitBehavior": "blockUntilComplete"
@@ -219,6 +294,110 @@
           "transitionIds": [
             "transition.validate_data_json"
           ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.validation_result": {
+      "$kind": "state",
+      "id": "state.validation_result",
+      "name": "Validation Result",
+      "description": "Route a completed strict-validation report to CK3 only when it passes; otherwise return to CK2 correction.",
+      "workflowPhase": "04 CK3",
+      "groups": [
+        {
+          "id": "group.validation_result",
+          "transitionIds": [
+            "transition.validation_passed",
+            "transition.validation_failed"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.prepare_ck2_after_validation_failure": {
+      "$kind": "state",
+      "id": "state.prepare_ck2_after_validation_failure",
+      "name": "Choose Validation Recovery",
+      "description": "Present the strict-validation report and ask whether to apply its fixes or return to CK2 without changing data.",
+      "workflowPhase": "04 CK3 Recovery",
+      "groups": [
+        {
+          "id": "group.prepare_ck2_after_validation_failure",
+          "transitionIds": ["transition.render_ck2_after_validation_failure"]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.wait_validation_recovery_choice": {
+      "$kind": "state",
+      "id": "state.wait_validation_recovery_choice",
+      "name": "Wait for Recovery Choice",
+      "description": "Wait for the user's structured choice to fix data or return to CK2 unchanged.",
+      "workflowPhase": "04 CK3 Recovery",
+      "groups": [
+        {
+          "id": "group.wait_validation_recovery_choice",
+          "transitionIds": ["transition.wait_validation_recovery_choice"]
+        }
+      ],
+      "waitBehavior": "waitForSignal"
+    },
+    "state.route_validation_recovery": {
+      "$kind": "state",
+      "id": "state.route_validation_recovery",
+      "name": "Route Validation Recovery",
+      "description": "Route only the two declared validation-recovery choices.",
+      "workflowPhase": "04 CK3 Recovery",
+      "groups": [
+        {
+          "id": "group.route_validation_recovery",
+          "transitionIds": [
+            "transition.validation_recovery_fix_data",
+            "transition.validation_recovery_return_ck2"
+          ]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.apply_validation_fix": {
+      "$kind": "state",
+      "id": "state.apply_validation_fix",
+      "name": "Apply Authorized Data Fixes",
+      "description": "Apply only the minimal data.json changes authorized by the user and identified by strict validation.",
+      "workflowPhase": "04 CK3 Recovery",
+      "groups": [
+        {
+          "id": "group.apply_validation_fix",
+          "transitionIds": ["transition.apply_validation_fix"]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.record_unchanged_validation_return": {
+      "$kind": "state",
+      "id": "state.record_unchanged_validation_return",
+      "name": "Record Unchanged CK2 Return",
+      "description": "Record that the user chose to return to CK2 without changing data.json.",
+      "workflowPhase": "04 CK3 Recovery",
+      "groups": [
+        {
+          "id": "group.record_unchanged_validation_return",
+          "transitionIds": ["transition.record_unchanged_validation_return"]
+        }
+      ],
+      "waitBehavior": "blockUntilComplete"
+    },
+    "state.render_ck2_after_validation_failure": {
+      "$kind": "state",
+      "id": "state.render_ck2_after_validation_failure",
+      "name": "Render CK2 Recovery Review",
+      "description": "Show the corrected or unchanged data and strict-validation diagnostics in CK2, then require another CK2 approval.",
+      "workflowPhase": "04 CK3 Recovery",
+      "groups": [
+        {
+          "id": "group.render_ck2_after_validation_failure",
+          "transitionIds": ["transition.render_ck2_after_validation_recovery"]
         }
       ],
       "waitBehavior": "blockUntilComplete"
@@ -345,6 +524,97 @@
       "groups": [],
       "waitBehavior": "blockUntilComplete"
     },
+    "transition.runtime_preflight": {
+      "$kind": "command",
+      "id": "transition.runtime_preflight",
+      "name": "Resolve exact runtime descriptor",
+      "description": "Pause for the selected published runtime to provide its launch descriptor before the MCP entry check.",
+      "targetNodeId": "state.start",
+      "outputPath": "runtime_preflight_result",
+      "guardExpression": {"kind": "predicate", "source": "true", "entryPoint": "Evaluate", "resultType": "bool"},
+      "succeedExpression": {"kind": "predicate", "source": "context.Get<string>(\"runtime_preflight_result.runtime_launch_descriptor_ref\") != null", "entryPoint": "Evaluate", "resultType": "bool"},
+      "stepKind": "waitResume",
+      "publishesOutputFamilies": [
+        "runtime_preflight_result",
+        "mcp_registration_attempt_evidence",
+        "governance_entry_transport",
+        "runtime_launch_descriptor_ref"
+      ],
+      "command": {
+        "kind": "tool",
+        "name": "runtime.resolveDescriptor",
+        "environmentKey": "",
+        "parameters": {
+          "runtimePreflight": true,
+          "mcpPreflightExempt": true,
+          "mcpRegistrationRequired": true,
+          "runtimeLaunchDescriptorOutput": "runtime_launch_descriptor_ref",
+          "runtimeLaunchSelection": "runtime_owned",
+          "mcpRegistrationAttemptOutput": "mcp_registration_attempt_evidence",
+          "mcpConfigOutputDirectory": "~/.skills/loomed/mcp/so/0.3.318",
+          "mcpConfigFormats": ["vscode", "claude"],
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "requiredInputs": ["result"],
+          "mustMatchPayloadInputs": {
+            "operation_id": "runtime_preflight_result.operation_id"
+          },
+          "outputBindings": {
+            "runtime_launch_descriptor_ref": "$context:runtime_preflight_result.runtime_launch_descriptor_ref",
+            "mcp_registration_attempt_evidence": "$context:runtime_preflight_result.mcp_registration_attempt_evidence",
+            "governance_entry_transport": "$context:runtime_preflight_result.governance_entry_transport"
+          }
+        }
+      }
+    },
+    "transition.mcp_governance_entry": {
+      "$kind": "command",
+      "id": "transition.mcp_governance_entry",
+      "name": "Verify governed MCP entry",
+      "description": "Use the selected runtime descriptor to record MCP startup evidence or the allowed pre-dispatch fallback before any further workflow work.",
+      "targetNodeId": "state.governance_entry",
+      "outputPath": "mcp_startup_evidence",
+      "guardExpression": {"kind": "predicate", "source": "true", "entryPoint": "Evaluate", "resultType": "bool"},
+      "succeedExpression": {"kind": "predicate", "source": "context.Get<string>(\"mcp_startup_evidence.transport\") != null && context.Get<bool>(\"mcp_startup_evidence.initialized\") == true && context.Get<bool>(\"mcp_startup_evidence.tool_called\") == true && context.Get<string>(\"mcp_startup_evidence.tool_name\") == \"so_inspect_workflow_fragment\" && context.Get<string>(\"mcp_startup_evidence.workflow_file\") != null && context.Get<bool>(\"mcp_startup_evidence.fragment_bounded\") == true", "entryPoint": "Evaluate", "resultType": "bool"},
+      "stepKind": "mcpCall",
+      "mcpFirst": true,
+      "transport": "stdio",
+      "requiredTool": "so_inspect_workflow_fragment",
+      "workflowFileInput": "current_external_workflow_copy",
+      "runtimeCommand": "descriptor_owned_mcp_stdio",
+      "serverNameTemplate": "loom-so-{resolved_runtime_version}",
+      "operationIdInput": "operation_id",
+      "satisfiesGateIds": ["gate.bootstrap_mcp_ready"],
+      "publishesOutputFamilies": ["mcp_startup_evidence"],
+      "command": {
+        "kind": "tool",
+        "name": "so_inspect_workflow_fragment",
+        "environmentKey": "",
+        "parameters": {
+          "runtimeLaunchDescriptorField": "runtime_launch_descriptor_ref",
+          "mcpFirst": true,
+          "resumeOutputKey": "mcp_startup_evidence",
+          "projectionMode": "canonical",
+          "operationId": "moodboard-governance-entry",
+          "operationIdInput": "operation_id",
+          "transport": "stdio",
+          "requiredTool": "so_inspect_workflow_fragment",
+          "workflowFileInput": "current_external_workflow_copy",
+          "runtimeCommand": "descriptor_owned_mcp_stdio",
+          "serverNameTemplate": "loom-so-{resolved_runtime_version}",
+          "requiredInputs": ["operation_id", "mcp_startup_evidence", "mcp_startup_evidence.operation_id"],
+          "mustMatchPayloadInputs": {
+            "operation_id": "mcp_startup_evidence.operation_id"
+          },
+          "outputBindings": {
+            "mcp_startup_evidence": "$result"
+          },
+          "workflowFragmentPointer": "/",
+          "maxBytes": 4096,
+          "maxDepth": 3
+        }
+      }
+    },
     "transition.classify_request": {
       "$kind": "command",
       "id": "transition.classify_request",
@@ -352,21 +622,22 @@
       "description": "Use the local CK state classifier subagent at `assets/agents/moodboard-alignment-ck-state-classifier.agent.md` to determine state, project type, trigger evidence, and revision context before routing.",
       "targetNodeId": "state.route_request",
       "outputPath": "entry_state",
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<string>(\"entry_state\") != null", "resultType": "bool" },
       "stepKind": "subagentCall",
-      "publishesOutputFamilies": [
-        "state_classification_record",
-        "subagent_dispatch_record"
-      ],
       "command": {
         "kind": "tool",
         "name": "workflow.invokeSubagentGapReview",
         "environmentKey": "",
         "parameters": {
           "subagentRelativePath": "assets/agents/moodboard-alignment-ck-state-classifier.agent.md",
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
           "skillHint": "Run the exact authority file assets/agents/moodboard-alignment-ck-state-classifier.agent.md to classify the current user message into raw_input, ck1_confirmed, ck2_confirmed, or revision and return trigger evidence plus revision-context readiness. Resolve the repository/workspace copy first and the corresponding global installed-skill copy second; do not replace this route with an approximate role.",
           "requiredInputs": [
             "user_message",
-            "subagent_resolution_record"
+            "subagent_resolution_record",
+            "result"
           ]
         }
       }
@@ -378,10 +649,9 @@
       "description": "Record explicit authority-resolution evidence for the exact local CK state classifier subagent before dispatching it.",
       "targetNodeId": "state.classify_request",
       "outputPath": "subagent_resolution_record",
-      "stepKind": "toolCall",
-      "publishesOutputFamilies": [
-        "subagent_resolution_record"
-      ],
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<object>(\"subagent_resolution_record\") != null", "resultType": "bool" },
+      "stepKind": "subagentCall",
       "command": {
         "kind": "tool",
         "name": "workflow.resolveTargetSkillSubagentAuthority",
@@ -392,8 +662,12 @@
             "workspace_copy",
             "global_installed_skill_copy"
           ],
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "skillHint": "Resolve the exact local classifier authority file before dispatch. Return result as a non-empty JSON object with resolved_path, resolution_source, sha256, and status=resolved. Do not summarize or replace the authority file.",
           "requiredInputs": [
-            "user_message"
+            "user_message",
+            "result"
           ]
         }
       }
@@ -405,8 +679,8 @@
       "description": "Follow the CK1 path for an unconfirmed moodboard brief.",
       "targetNodeId": "state.prepare_ck1",
       "stepKind": "conditionBranch",
-      "guardExpression": "entry_state == 'raw_input'",
-      "succeedExpression": "entry_state == 'raw_input'"
+      "guardExpression": { "kind": "predicate", "source": "context.Get<string>(\"entry_state\") == \"raw_input\"", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<string>(\"entry_state\") == \"raw_input\"", "resultType": "bool" }
     },
     "transition.route_ck1_confirmed": {
       "$kind": "expr",
@@ -415,8 +689,8 @@
       "description": "Follow the CK2 draft path after CK1 confirmation.",
       "targetNodeId": "state.prepare_ck2",
       "stepKind": "conditionBranch",
-      "guardExpression": "entry_state == 'ck1_confirmed'",
-      "succeedExpression": "entry_state == 'ck1_confirmed'"
+      "guardExpression": { "kind": "predicate", "source": "context.Get<string>(\"entry_state\") == \"ck1_confirmed\"", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<string>(\"entry_state\") == \"ck1_confirmed\"", "resultType": "bool" }
     },
     "transition.route_ck2_confirmed": {
       "$kind": "expr",
@@ -425,8 +699,8 @@
       "description": "Follow the CK3 delivery path after explicit CK2 authorization.",
       "targetNodeId": "state.validate_ck3",
       "stepKind": "conditionBranch",
-      "guardExpression": "entry_state == 'ck2_confirmed'",
-      "succeedExpression": "entry_state == 'ck2_confirmed'"
+      "guardExpression": { "kind": "predicate", "source": "context.Get<string>(\"entry_state\") == \"ck2_confirmed\"", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<string>(\"entry_state\") == \"ck2_confirmed\"", "resultType": "bool" }
     },
     "transition.route_revision": {
       "$kind": "expr",
@@ -435,8 +709,8 @@
       "description": "Follow the revision path for single-node or single-field edits.",
       "targetNodeId": "state.revision_context",
       "stepKind": "conditionBranch",
-      "guardExpression": "entry_state == 'revision'",
-      "succeedExpression": "entry_state == 'revision'"
+      "guardExpression": { "kind": "predicate", "source": "context.Get<string>(\"entry_state\") == \"revision\"", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<string>(\"entry_state\") == \"revision\"", "resultType": "bool" }
     },
     "transition.compose_ck1": {
       "$kind": "command",
@@ -445,19 +719,22 @@
       "description": "Generate the CK1 template response with no files, no option list, and no more than three confirmation questions.",
       "targetNodeId": "state.wait_ck1",
       "outputPath": "checkpoint_package",
-      "stepKind": "toolCall",
-      "publishesOutputFamilies": [
-        "checkpoint_package",
-        "ck1_template_response"
-      ],
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<object>(\"checkpoint_package\") != null", "resultType": "bool" },
+      "stepKind": "subagentCall",
+      "publishesOutputFamilies": ["checkpoint_package"],
       "command": {
         "kind": "tool",
         "name": "workflow.composeCk1Template",
         "environmentKey": "",
         "parameters": {
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "skillHint": "Apply the raw_input CK1_TEMPLATE in SKILL.md. Return result as a non-empty checkpoint package containing the exact user-facing CK1 response, no more than three clarification questions, and evidence that no files or generated assets were created.",
           "requiredInputs": [
             "user_message",
-            "entry_state"
+            "entry_state",
+            "result"
           ],
           "stateClassifierRelativePath": "assets/agents/moodboard-alignment-ck-state-classifier.agent.md"
         }
@@ -470,7 +747,10 @@
       "description": "Block until the user explicitly confirms the direction for CK2 and weave back a checkpoint resume request.",
       "targetNodeId": "state.prepare_ck2",
       "outputPath": "checkpoint_resume_request",
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<string>(\"checkpoint_resume_request.approval_decision\") == \"approved\"", "resultType": "bool" },
       "stepKind": "waitResume",
+      "projectionMode": "canonical",
       "blockedRoutes": [
         "route.workflow"
       ],
@@ -478,11 +758,7 @@
         "gate.workflow_blocked"
       ],
       "publishesBlockedOutputFamilies": [
-        "checkpoint_package",
-        "checkpoint_resume_request",
-        "state_classification_record",
-        "subagent_resolution_record",
-        "subagent_dispatch_record"
+        "checkpoint_resume_request"
       ],
       "command": {
         "kind": "tool",
@@ -490,10 +766,11 @@
         "environmentKey": "",
         "parameters": {
           "resumeOutputKey": "checkpoint_resume_request",
+          "projectionMode": "canonical",
+          "skillHint": "Resume payload must set checkpoint_resume_request.approval_decision to the exact value approved only when the user explicitly confirms the CK1 direction. Put the checkpoint request object at payload.checkpoint_resume_request. Rejection or missing approval must not continue to CK2.",
           "requiredInputs": [
-            "approval_decision",
-            "feedback_notes",
-            "checkpoint_resume_request"
+            "checkpoint_resume_request",
+            "checkpoint_resume_request.approval_decision"
           ]
         }
       }
@@ -505,22 +782,23 @@
       "description": "Create the data.json draft and render ck2-client.html plus ck2-execution.html without generating images, audio, or final views.",
       "targetNodeId": "state.wait_ck2",
       "outputPath": "checkpoint_package",
-      "stepKind": "toolCall",
-      "publishesOutputFamilies": [
-        "checkpoint_package",
-        "data_json_draft",
-        "ck2_client_html",
-        "ck2_execution_html"
-      ],
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<object>(\"checkpoint_package\") != null", "resultType": "bool" },
+      "stepKind": "subagentCall",
+      "publishesOutputFamilies": ["checkpoint_package"],
       "command": {
         "kind": "tool",
         "name": "workflow.renderCk2Checkpoint",
         "environmentKey": "",
         "parameters": {
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "skillHint": "Follow CK2_TEMPLATE in SKILL.md and the project's workflow command reference. Create only the pending data.json and ck2-client.html plus ck2-execution.html. Return result as a non-empty checkpoint package listing verified paths and confirming that image, audio, and final views were not generated.",
           "requiredInputs": [
             "project_root",
             "project_type",
-            "entry_state"
+            "entry_state",
+            "result"
           ],
           "dataSchemaRef": "references/data-schema.md",
           "workflowCommandsRef": "references/workflow-commands.md"
@@ -534,7 +812,10 @@
       "description": "Block until the user explicitly authorizes CK3 and weave back a checkpoint resume request.",
       "targetNodeId": "state.validate_ck3",
       "outputPath": "checkpoint_resume_request",
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<string>(\"checkpoint_resume_request.approval_decision\") == \"approved\"", "resultType": "bool" },
       "stepKind": "waitResume",
+      "projectionMode": "canonical",
       "blockedRoutes": [
         "route.workflow"
       ],
@@ -542,11 +823,7 @@
         "gate.workflow_blocked"
       ],
       "publishesBlockedOutputFamilies": [
-        "checkpoint_package",
-        "checkpoint_resume_request",
-        "state_classification_record",
-        "subagent_resolution_record",
-        "subagent_dispatch_record"
+        "checkpoint_resume_request"
       ],
       "command": {
         "kind": "tool",
@@ -554,10 +831,11 @@
         "environmentKey": "",
         "parameters": {
           "resumeOutputKey": "checkpoint_resume_request",
+          "projectionMode": "canonical",
+          "skillHint": "Resume payload must set checkpoint_resume_request.approval_decision to the exact value approved only when the user has received or reviewed CK2 and explicitly authorizes CK3. Put the checkpoint request object at payload.checkpoint_resume_request. Rejection or missing approval must not continue to CK3.",
           "requiredInputs": [
-            "approval_decision",
-            "feedback_notes",
-            "checkpoint_resume_request"
+            "checkpoint_resume_request",
+            "checkpoint_resume_request.approval_decision"
           ]
         }
       }
@@ -567,18 +845,187 @@
       "id": "transition.validate_data_json",
       "name": "Validate data.json",
       "description": "Run strict validation before CK3 generation.",
-      "targetNodeId": "state.generate_images",
+      "targetNodeId": "state.validation_result",
       "outputPath": "validation_report",
-      "stepKind": "toolCall",
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<object>(\"validation_report\") != null", "resultType": "bool" },
+      "stepKind": "subagentCall",
       "command": {
         "kind": "tool",
         "name": "workflow.validateMoodboardData",
         "environmentKey": "",
         "parameters": {
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "skillHint": "Run scripts/validate_data.py --strict against the project's data.json without editing it. Return result as a JSON validation report with checked_path, passed, exit_code, errors, and warnings copied from the script output and process status. All four gate fields passed, exit_code, errors, and warnings are required and must be present with the expected types. Set passed=true only when process exit_code is 0 and both errors and warnings are 0. If the script exits non-zero, any field is missing or invalid, or any issue is reported, return passed=false, preserve diagnostics, and do not generate images or continue CK3.",
           "requiredInputs": [
-            "project_root"
+            "project_root",
+            "result"
           ],
           "scriptPath": "scripts/validate_data.py"
+        }
+      }
+    },
+    "transition.validation_passed": {
+      "$kind": "expr",
+      "id": "transition.validation_passed",
+      "name": "Strict validation passed",
+      "description": "Continue to CK3 generation only when strict validation reports zero exit code and no warnings or errors.",
+      "targetNodeId": "state.generate_images",
+      "stepKind": "conditionBranch",
+      "guardExpression": {"kind": "predicate", "source": "context.Get<object>(\"validation_report.passed\") is bool && (context.Get<object>(\"validation_report.exit_code\") is int || context.Get<object>(\"validation_report.exit_code\") is long) && (context.Get<object>(\"validation_report.errors\") is int || context.Get<object>(\"validation_report.errors\") is long) && (context.Get<object>(\"validation_report.warnings\") is int || context.Get<object>(\"validation_report.warnings\") is long) && context.Get<bool>(\"validation_report.passed\") == true && context.Get<int>(\"validation_report.exit_code\") == 0 && context.Get<int>(\"validation_report.errors\") == 0 && context.Get<int>(\"validation_report.warnings\") == 0", "entryPoint": "Evaluate", "resultType": "bool"},
+      "succeedExpression": {"kind": "predicate", "source": "context.Get<object>(\"validation_report.passed\") is bool && (context.Get<object>(\"validation_report.exit_code\") is int || context.Get<object>(\"validation_report.exit_code\") is long) && (context.Get<object>(\"validation_report.errors\") is int || context.Get<object>(\"validation_report.errors\") is long) && (context.Get<object>(\"validation_report.warnings\") is int || context.Get<object>(\"validation_report.warnings\") is long) && context.Get<bool>(\"validation_report.passed\") == true && context.Get<int>(\"validation_report.exit_code\") == 0 && context.Get<int>(\"validation_report.errors\") == 0 && context.Get<int>(\"validation_report.warnings\") == 0", "entryPoint": "Evaluate", "resultType": "bool"}
+    },
+    "transition.validation_failed": {
+      "$kind": "expr",
+      "id": "transition.validation_failed",
+      "name": "Return failed validation to CK2",
+      "description": "Send validation failures or warnings back to the CK2 correction checkpoint; do not generate images or audio.",
+      "targetNodeId": "state.prepare_ck2_after_validation_failure",
+      "stepKind": "conditionBranch",
+      "guardExpression": {"kind": "predicate", "source": "!(context.Get<object>(\"validation_report.passed\") is bool) || !(context.Get<object>(\"validation_report.exit_code\") is int || context.Get<object>(\"validation_report.exit_code\") is long) || !(context.Get<object>(\"validation_report.errors\") is int || context.Get<object>(\"validation_report.errors\") is long) || !(context.Get<object>(\"validation_report.warnings\") is int || context.Get<object>(\"validation_report.warnings\") is long) || context.Get<bool>(\"validation_report.passed\") != true || context.Get<int>(\"validation_report.exit_code\") != 0 || context.Get<int>(\"validation_report.errors\") != 0 || context.Get<int>(\"validation_report.warnings\") != 0", "entryPoint": "Evaluate", "resultType": "bool"},
+      "succeedExpression": {"kind": "predicate", "source": "!(context.Get<object>(\"validation_report.passed\") is bool) || !(context.Get<object>(\"validation_report.exit_code\") is int || context.Get<object>(\"validation_report.exit_code\") is long) || !(context.Get<object>(\"validation_report.errors\") is int || context.Get<object>(\"validation_report.errors\") is long) || !(context.Get<object>(\"validation_report.warnings\") is int || context.Get<object>(\"validation_report.warnings\") is long) || context.Get<bool>(\"validation_report.passed\") != true || context.Get<int>(\"validation_report.exit_code\") != 0 || context.Get<int>(\"validation_report.errors\") != 0 || context.Get<int>(\"validation_report.warnings\") != 0", "entryPoint": "Evaluate", "resultType": "bool"}
+    },
+    "transition.render_ck2_after_validation_failure": {
+      "$kind": "command",
+      "id": "transition.render_ck2_after_validation_failure",
+      "name": "Present Validation Recovery Choices",
+      "description": "Present validation findings and ask the user to choose authorized data fixes or an unchanged return to CK2.",
+      "targetNodeId": "state.wait_validation_recovery_choice",
+      "outputPath": "checkpoint_package",
+      "guardExpression": {"kind": "predicate", "source": "true", "entryPoint": "Evaluate", "resultType": "bool"},
+      "succeedExpression": {"kind": "predicate", "source": "context.Get<object>(\"checkpoint_package\") != null", "entryPoint": "Evaluate", "resultType": "bool"},
+      "stepKind": "subagentCall",
+      "publishesOutputFamilies": ["checkpoint_package"],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.renderCk2Checkpoint",
+        "environmentKey": "",
+        "parameters": {
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "skillHint": "Strict validation failed. Preserve data.json and present the full validation_report diagnostics with exactly two choices: (1) authorize minimal fixes for the reported validation issues, or (2) return to CK2 unchanged so the user can revise the project data outside this workflow. Do not generate images, audio, or final views. Return result as a non-empty checkpoint package with the diagnostics and both choices.",
+          "requiredInputs": ["project_root", "project_type", "validation_report", "result"],
+          "dataSchemaRef": "references/data-schema.md",
+          "workflowCommandsRef": "references/workflow-commands.md"
+        }
+      }
+    },
+    "transition.wait_validation_recovery_choice": {
+      "$kind": "command",
+      "id": "transition.wait_validation_recovery_choice",
+      "name": "Wait for Validation Recovery Choice",
+      "description": "Wait for the user's explicit choice before modifying data or returning unchanged to CK2.",
+      "targetNodeId": "state.route_validation_recovery",
+      "outputPath": "checkpoint_resume_request",
+      "guardExpression": {"kind": "predicate", "source": "true", "entryPoint": "Evaluate", "resultType": "bool"},
+      "succeedExpression": {"kind": "predicate", "source": "context.Get<string>(\"checkpoint_resume_request.decision\") == \"fix_data\" || context.Get<string>(\"checkpoint_resume_request.decision\") == \"return_to_ck2\"", "entryPoint": "Evaluate", "resultType": "bool"},
+      "stepKind": "waitResume",
+      "projectionMode": "canonical",
+      "blockedRoutes": ["route.workflow"],
+      "satisfiesGateIds": ["gate.workflow_blocked"],
+      "publishesBlockedOutputFamilies": ["checkpoint_resume_request"],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.waitForValidationRecoveryChoice",
+        "environmentKey": "",
+        "parameters": {
+          "resumeOutputKey": "checkpoint_resume_request",
+          "projectionMode": "canonical",
+          "skillHint": "Return payload.checkpoint_resume_request.decision as exactly fix_data or return_to_ck2. Choose fix_data only to authorize minimal repairs for the listed strict-validation diagnostics. Choose return_to_ck2 to leave data.json unchanged and review CK2 before making edits.",
+          "requiredInputs": ["checkpoint_resume_request", "checkpoint_resume_request.decision"]
+        }
+      }
+    },
+    "transition.validation_recovery_fix_data": {
+      "$kind": "expr",
+      "id": "transition.validation_recovery_fix_data",
+      "name": "Apply authorized validation fixes",
+      "description": "Select the data repair path only after the user explicitly authorizes it.",
+      "targetNodeId": "state.apply_validation_fix",
+      "stepKind": "conditionBranch",
+      "guardExpression": {"kind": "predicate", "source": "context.Get<string>(\"checkpoint_resume_request.decision\") == \"fix_data\"", "entryPoint": "Evaluate", "resultType": "bool"},
+      "succeedExpression": {"kind": "predicate", "source": "context.Get<string>(\"checkpoint_resume_request.decision\") == \"fix_data\"", "entryPoint": "Evaluate", "resultType": "bool"}
+    },
+    "transition.validation_recovery_return_ck2": {
+      "$kind": "expr",
+      "id": "transition.validation_recovery_return_ck2",
+      "name": "Return unchanged to CK2",
+      "description": "Select the CK2 review path without modifying data.json.",
+      "targetNodeId": "state.record_unchanged_validation_return",
+      "stepKind": "conditionBranch",
+      "guardExpression": {"kind": "predicate", "source": "context.Get<string>(\"checkpoint_resume_request.decision\") == \"return_to_ck2\"", "entryPoint": "Evaluate", "resultType": "bool"},
+      "succeedExpression": {"kind": "predicate", "source": "context.Get<string>(\"checkpoint_resume_request.decision\") == \"return_to_ck2\"", "entryPoint": "Evaluate", "resultType": "bool"}
+    },
+    "transition.record_unchanged_validation_return": {
+      "$kind": "command",
+      "id": "transition.record_unchanged_validation_return",
+      "name": "Record Unchanged Data Disposition",
+      "description": "Record an audit result confirming data.json was intentionally left unchanged before returning to CK2.",
+      "targetNodeId": "state.render_ck2_after_validation_failure",
+      "outputPath": "revision_report",
+      "guardExpression": {"kind": "predicate", "source": "context.Get<string>(\"checkpoint_resume_request.decision\") == \"return_to_ck2\"", "entryPoint": "Evaluate", "resultType": "bool"},
+      "succeedExpression": {"kind": "predicate", "source": "context.Get<object>(\"revision_report\") != null", "entryPoint": "Evaluate", "resultType": "bool"},
+      "stepKind": "stateUpdate",
+      "command": {
+        "kind": "nativeCode",
+        "name": "state.update",
+        "environmentKey": "",
+        "parameters": {
+          "updates": {
+            "revision_report": {
+              "status": "unchanged_return_to_ck2",
+              "data_json_changed": false
+            }
+          }
+        }
+      }
+    },
+    "transition.apply_validation_fix": {
+      "$kind": "command",
+      "id": "transition.apply_validation_fix",
+      "name": "Apply Minimal Authorized Data Fixes",
+      "description": "Apply only the minimal data.json changes needed to address the reported strict-validation findings.",
+      "targetNodeId": "state.render_ck2_after_validation_failure",
+      "outputPath": "revision_report",
+      "guardExpression": {"kind": "predicate", "source": "context.Get<string>(\"checkpoint_resume_request.decision\") == \"fix_data\"", "entryPoint": "Evaluate", "resultType": "bool"},
+      "succeedExpression": {"kind": "predicate", "source": "context.Get<object>(\"revision_report\") != null", "entryPoint": "Evaluate", "resultType": "bool"},
+      "stepKind": "subagentCall",
+      "command": {
+        "kind": "tool",
+        "name": "workflow.applyValidationRepairs",
+        "environmentKey": "",
+        "parameters": {
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "skillHint": "The user explicitly selected fix_data. Apply only minimal changes needed to address validation_report errors/warnings in the existing data.json, preserve all unrelated fields and nodes, and do not generate images/audio/final views. Return a non-empty revision_report listing changed paths and unresolved findings; unresolved issues will be revalidated and routed again.",
+          "requiredInputs": ["project_root", "validation_report", "checkpoint_resume_request", "result"],
+          "dataSchemaRef": "references/data-schema.md"
+        }
+      }
+    },
+    "transition.render_ck2_after_validation_recovery": {
+      "$kind": "command",
+      "id": "transition.render_ck2_after_validation_recovery",
+      "name": "Render CK2 Recovery Review",
+      "description": "Render the current data and validation findings for CK2 review; require explicit CK2 approval before retrying strict validation.",
+      "targetNodeId": "state.wait_ck2",
+      "outputPath": "checkpoint_package",
+      "guardExpression": {"kind": "predicate", "source": "true", "entryPoint": "Evaluate", "resultType": "bool"},
+      "succeedExpression": {"kind": "predicate", "source": "context.Get<object>(\"checkpoint_package\") != null", "entryPoint": "Evaluate", "resultType": "bool"},
+      "stepKind": "subagentCall",
+      "publishesOutputFamilies": ["checkpoint_package"],
+      "command": {
+        "kind": "tool",
+        "name": "workflow.renderCk2Checkpoint",
+        "environmentKey": "",
+        "parameters": {
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "skillHint": "Render the CK2 client and execution views from the current on-disk data.json and include the previous validation_report plus any revision_report. Never alter the data in this rendering step; preserve files exactly and report validated paths. Stop for fresh CK2 approval; do not generate images, audio, or final views.",
+          "requiredInputs": ["project_root", "project_type", "validation_report", "revision_report", "checkpoint_resume_request", "result"],
+          "dataSchemaRef": "references/data-schema.md",
+          "workflowCommandsRef": "references/workflow-commands.md"
         }
       }
     },
@@ -589,17 +1036,21 @@
       "description": "Generate node images and mark failures as placeholders instead of aborting the whole workflow.",
       "targetNodeId": "state.generate_audio",
       "outputPath": "generation_report",
-      "stepKind": "toolCall",
-      "publishesOutputFamilies": [
-        "final_image_assets"
-      ],
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<object>(\"generation_report\") != null", "resultType": "bool" },
+      "stepKind": "subagentCall",
+      "publishesOutputFamilies": [],
       "command": {
         "kind": "tool",
         "name": "workflow.generateMoodboardImages",
         "environmentKey": "",
         "parameters": {
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "skillHint": "Run scripts/generate_images.py for the existing project, preserve per-node failure placeholders, and return result as a non-empty generation report listing the image paths and any placeholder failures.",
           "requiredInputs": [
-            "project_root"
+            "project_root",
+            "result"
           ],
           "scriptPath": "scripts/generate_images.py"
         }
@@ -612,18 +1063,22 @@
       "description": "Generate audio only when the project type or meta.sound_enabled requires it.",
       "targetNodeId": "state.render_ck3",
       "outputPath": "generation_report",
-      "stepKind": "toolCall",
-      "publishesOutputFamilies": [
-        "final_audio_assets"
-      ],
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<object>(\"generation_report\") != null", "resultType": "bool" },
+      "stepKind": "subagentCall",
+      "publishesOutputFamilies": [],
       "command": {
         "kind": "tool",
         "name": "workflow.generateMoodboardAudioWhenEnabled",
         "environmentKey": "",
         "parameters": {
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "skillHint": "Check references/project-templates.md and meta.sound_enabled first. Run scripts/generate_audio.py only when audio is enabled; otherwise return a non-empty report stating generation was skipped. Do not create audio for a disabled sound dimension.",
           "requiredInputs": [
             "project_root",
-            "project_type"
+            "project_type",
+            "result"
           ],
           "projectTemplateRef": "references/project-templates.md",
           "scriptPath": "scripts/generate_audio.py"
@@ -637,7 +1092,9 @@
       "description": "Render the final client, director, and execution HTML views and complete the route.",
       "targetNodeId": "state.done",
       "outputPath": "delivery_response",
-      "stepKind": "toolCall",
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<string>(\"delivery_response\") != null", "resultType": "bool" },
+      "stepKind": "subagentCall",
       "terminalRoutes": [
         "route.workflow"
       ],
@@ -645,24 +1102,20 @@
         "gate.workflow_done"
       ],
       "publishesOutputFamilies": [
-        "data_json_current",
-        "delivery_response",
-        "subagent_resolution_record",
-        "subagent_dispatch_record",
-        "updated_views",
-        "workflow_completion_record",
-        "index_client_html",
-        "index_director_html",
-        "index_execution_html"
+        "delivery_response"
       ],
       "command": {
         "kind": "tool",
         "name": "workflow.renderMoodboardFinalViews",
         "environmentKey": "",
         "parameters": {
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "skillHint": "After explicit CK3 authorization, execute only the CK3 path in SKILL.md: validate data.json, run the applicable generators and render scripts, verify all three final HTML files, and return result as a non-empty delivery response containing their verified relative paths.",
           "requiredInputs": [
             "project_root",
-            "project_type"
+            "project_type",
+            "result"
           ],
           "scriptPath": "scripts/render.py",
           "viewTemplateRef": "references/view-templates.md",
@@ -677,8 +1130,8 @@
       "description": "Continue to apply the revision when the current project context is available.",
       "targetNodeId": "state.apply_revision",
       "stepKind": "conditionBranch",
-      "guardExpression": "has_revision_context == true",
-      "succeedExpression": "has_revision_context == true"
+      "guardExpression": { "kind": "predicate", "source": "context.Get<bool>(\"has_revision_context\")", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<bool>(\"has_revision_context\")", "resultType": "bool" }
     },
     "transition.route_revision_missing_context": {
       "$kind": "expr",
@@ -687,8 +1140,8 @@
       "description": "Block and request data.json, project path, or original node content when revision context is missing.",
       "targetNodeId": "state.wait_revision_context",
       "stepKind": "conditionBranch",
-      "guardExpression": "has_revision_context != true",
-      "succeedExpression": "has_revision_context != true"
+      "guardExpression": { "kind": "predicate", "source": "!context.Get<bool>(\"has_revision_context\")", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "!context.Get<bool>(\"has_revision_context\")", "resultType": "bool" }
     },
     "transition.wait_revision_context": {
       "$kind": "command",
@@ -697,6 +1150,8 @@
       "description": "Block until revision context is provided and weave back a checkpoint resume request.",
       "targetNodeId": "state.apply_revision",
       "outputPath": "checkpoint_resume_request",
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<string>(\"checkpoint_resume_request\") != null", "resultType": "bool" },
       "stepKind": "waitResume",
       "blockedRoutes": [
         "route.workflow"
@@ -704,19 +1159,14 @@
       "satisfiesGateIds": [
         "gate.workflow_blocked"
       ],
-      "publishesBlockedOutputFamilies": [
-        "checkpoint_package",
-        "checkpoint_resume_request",
-        "state_classification_record",
-        "subagent_resolution_record",
-        "subagent_dispatch_record"
-      ],
+      "publishesBlockedOutputFamilies": ["checkpoint_resume_request"],
       "command": {
         "kind": "tool",
         "name": "workflow.waitForRevisionContext",
         "environmentKey": "",
         "parameters": {
           "resumeOutputKey": "checkpoint_resume_request",
+          "projectionMode": "canonical",
           "requiredInputs": [
             "project_root",
             "revision_scope",
@@ -732,19 +1182,23 @@
       "description": "Patch only the named node or field, then keep all untouched nodes unchanged.",
       "targetNodeId": "state.render_revision",
       "outputPath": "revision_report",
-      "stepKind": "toolCall",
-      "publishesOutputFamilies": [
-        "revision_audit_log"
-      ],
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<object>(\"revision_report\") != null", "resultType": "bool" },
+      "stepKind": "subagentCall",
+      "publishesOutputFamilies": [],
       "command": {
         "kind": "tool",
         "name": "workflow.applyMoodboardRevision",
         "environmentKey": "",
         "parameters": {
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "skillHint": "Apply only revision_scope to the existing data.json using the schema rules in references/data-schema.md. Preserve all unnamed nodes and fields, validate the result, and return result as a non-empty revision report containing the changed paths and unchanged-scope confirmation.",
           "requiredInputs": [
             "project_root",
             "revision_scope",
-            "revision_new_value"
+            "revision_new_value",
+            "result"
           ],
           "dataSchemaRef": "references/data-schema.md"
         }
@@ -757,30 +1211,28 @@
       "description": "Re-render only the affected outputs after revision validation and finish the route.",
       "targetNodeId": "state.done",
       "outputPath": "delivery_response",
-      "stepKind": "toolCall",
+      "guardExpression": { "kind": "predicate", "source": "true", "resultType": "bool" },
+      "succeedExpression": { "kind": "predicate", "source": "context.Get<string>(\"delivery_response\") != null", "resultType": "bool" },
+      "stepKind": "subagentCall",
       "terminalRoutes": [
         "route.workflow"
       ],
       "satisfiesGateIds": [
         "gate.workflow_done"
       ],
-      "publishesOutputFamilies": [
-        "data_json_current",
-        "delivery_response",
-        "subagent_resolution_record",
-        "subagent_dispatch_record",
-        "updated_views",
-        "workflow_completion_record",
-        "revision_audit_log"
-      ],
+      "publishesOutputFamilies": ["delivery_response"],
       "command": {
         "kind": "tool",
         "name": "workflow.renderMoodboardRevisionViews",
         "environmentKey": "",
         "parameters": {
+          "resumeOutputKey": "result",
+          "projectionMode": "canonical",
+          "skillHint": "Apply only the named revision scope from SKILL.md. Preserve every unnamed node and field, validate data.json, rerender only affected views, and return result as a non-empty delivery response with the revision audit and verified affected paths.",
           "requiredInputs": [
             "project_root",
-            "revision_scope"
+            "revision_scope",
+            "result"
           ],
           "scriptPath": "scripts/render.py"
         }
