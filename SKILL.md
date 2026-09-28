@@ -37,6 +37,10 @@ description: 审美共识引擎。把客户 brief、会议记录、剧本/故事
 8. `so.exe compile` 只代表治理模板通过验证，不代表已经发生官方 governed run；只有公开 `so.exe run` 链路在精确外部 workflow 副本上到达最终 `Done`，或该链路阻塞后由匹配的公开 `so.exe resume` 链路继续到达最终 `Done`，才可声明 official governed completion evidence。
 9. CK1 / CK2 的 WaitResume 必须通过结构化 `checkpoint_resume_request` 回传 `approval_decision: "approved"` 才能继续；缺少、拒绝或其他值均不得进入下一阶段。CK1 的批准只允许进入 CK2，CK2 的明确批准才允许进入 CK3。
 10. CK3 的 `validate_data.py --strict` 只有在 `passed`、`exit_code`、`errors`、`warnings` 四个门禁字段均存在且类型有效，并且进程退出码为 0、errors 与 warnings 均为 0 时才算通过；缺字段、类型无效或任何校验问题都必须回到 CK2 recovery checkpoint，由用户选择“按报告修复”或“保持数据不变返回 CK2”。任何修正都必须重新渲染 CK2 并取得新的明确 CK2 批准，之后才可重试校验；不得从失败报告直接进入图片、音频或最终视图生成。
+11. 每次调用锁定版本的 SO apphost 后，都必须在该次进度回复中给出以下两个百分比，不得只在阶段开始或结束时报告：
+	- `## 执行信心: N%`：根据当前可验证证据，估计本次执行及当前请求最终成功的可信度；同时用一句话说明依据或未决风险。
+	- `## 预计整体进度: N%`：估计当前用户目标从开始到完成的总体比例，并用一句话说明已完成与待完成部分。它不是当前命令的完成度；治理业务流程未到最终 `Done` 时不得报 100%。
+	适用于 `so.exe --guide`、schema/demo、`compile`、`run`、`resume`、`status` 和 inspection 等每次 apphost 调用。命令失败或阻塞时仍须报告两项百分比，并说明失败/等待对信心和进度的影响及下一步；没有新增进展时整体进度可以不变。按 Loom continuity 规则先给出本次可验证的 Mermaid、HTML、Analysis、Dataflow 产物状态，再给出上述两个百分比，不得猜测审计路径或伪报成功。
 
 ## HARD ROUTER · 最高优先级
 
