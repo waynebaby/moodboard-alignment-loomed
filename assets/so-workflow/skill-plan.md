@@ -15,17 +15,17 @@
 - 已检入的 `assets/so-workflow/contract.json` 从 `SKILL.md` 显式提取 CK 状态、确认锁、revision 保护和交付约束
 - 已检入的 `assets/agents/moodboard-alignment-ck-state-classifier.agent.md` 作为本地分类子代理
 - 已检入的治理说明与节点产物映射
-- 一份可通过 `dotnet so.dll compile` 的 SO-governed workflow 源模板；正式 `run` / `resume` 必须从该模板复制出仓库外的运行时副本
+- 一份可通过锁定版本 `so.exe compile` 的 SO-governed workflow 源模板；正式 `run` / `resume` 必须从该模板复制出仓库外的运行时副本
 
 补充约束：
 
 - 对任何 `assets/` 下已命名的本地子代理路由，仓库 / 工作区副本优先于全局安装副本，且该精确 `.agent.md` 文件是唯一权威契约
-- 每次 `dotnet so.dll` CLI 调用后，都要回报 Mermaid continuity
-- 当前切片绑定 released `0.3.318`。状态为 compile-ready：精确 descriptor、fresh guide、MCP fragment entry 和 compile/dataflow 均通过；compile 成功只代表结构与治理校验通过。没有针对真实 moodboard brief 和项目路径的 public `run` / `resume` 链路时，不得声明 official governed run evidence。
+- 每次 `so.exe` 调用后，都要回报 Mermaid continuity
+- 当前切片绑定 released `0.3.326` self-contained `win-x64` apphost。精确包 hash/manifest、fresh guide、版本差分语义探针、source-template compile 与 dataflow 均通过；MCP 只可选尝试，不是启动或治理入口门槛。此前 `0.3.318` 证据仅作为历史基线；没有针对真实 moodboard brief 和项目路径的 public `so.exe run` / `so.exe resume` 链路时，不得声明 official governed completion。
 
 ## Workflow Shape
 
-1. 通过 descriptor-bound MCP-first 入口验证运行时，然后由外部 SubagentCall 调用本地状态分类子代理。
+1. 使用锁定版本的直接 apphost 完成 fresh guide 与 bounded workflow-fragment 检查；MCP 仅在已匹配或可直接启动时尝试，否则使用 CLI，然后由外部 SubagentCall 调用本地状态分类子代理。
 2. 按 `raw_input / ck1_confirmed / ck2_confirmed / revision` 路由。
 3. `raw_input` 通过外部 CK1 调用只产出文本包，并在确认点阻塞。
 4. `ck1_confirmed` 通过外部 CK2 调用创建 `data.json` 待确认稿并渲染 `ck2-client.html`、`ck2-execution.html`，然后阻塞。
@@ -38,7 +38,7 @@
   - `checkpoint_resume_request`
 - terminal completion families:
   - `delivery_response`
-- bootstrap families: `mcp_startup_evidence`, `runtime_preflight_result`, `mcp_registration_attempt_evidence`, `governance_entry_transport`, `runtime_launch_descriptor_ref`
+- startup and fragment-inspection evidence is retained in external execution records; MCP registration and resolver-descriptor output families are not workflow prerequisites
 - detailed business artifacts are carried in and independently verified from the external checkpoint/delivery result; they are not declared as produced families until an exact producer contract exists
 
 ## Key Constraints

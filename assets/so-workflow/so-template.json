@@ -6,7 +6,7 @@
   "caseId": "moodboard-alignment-root-governance",
   "runId": "template:root-governance",
   "runtimeBinding": "dotnet-so",
-  "runtimeVersion": "0.3.318",
+  "runtimeVersion": "0.3.326",
   "expressionBinding": {
     "language": "csharp",
     "languageVersion": "12",
@@ -17,40 +17,7 @@
   },
   "sourceTemplateMode": "checked-in-source-only",
   "validation": {
-    "governanceEntry": {
-      "preferredTransport": "mcp_stdio",
-      "allowedTransports": ["mcp_stdio", "cli"],
-      "evidenceFamily": "mcp_startup_evidence",
-      "mcpAttemptEvidenceFamily": "mcp_registration_attempt_evidence",
-      "runtimeLaunchDescriptorField": "runtime_launch_descriptor_ref",
-      "preDispatchCliFallbackReasons": [
-        "mcp_transport_unavailable",
-        "mcp_handshake_unsupported",
-        "mcp_tool_unavailable"
-      ]
-    },
     "gates": {
-      "gate.bootstrap_mcp_ready": {
-        "description": "The exact runtime has recorded successful MCP startup evidence or the allowed pre-dispatch CLI fallback.",
-        "passExpression": {
-          "kind": "predicate",
-          "source": "context.Get<object>(\"mcp_startup_evidence\") != null",
-          "entryPoint": "Evaluate",
-          "resultType": "bool"
-        },
-        "requiredOutputFamilies": ["mcp_startup_evidence"],
-        "requiredMachineReadableOutputFamilies": ["mcp_startup_evidence"],
-        "requiredHumanReviewableOutputFamilies": [],
-        "valueSemantics": {"mcp_startup_evidence": "nonEmptyObject"},
-        "instanceBinding": "current_workflow_instance",
-        "failureGuidance": {
-          "summary": "The runtime connection has not been verified; the skill files remain unchanged.",
-          "nextAction": "Use the selected runtime descriptor to complete MCP startup or its allowed pre-dispatch fallback before continuing.",
-          "evidenceReferences": [
-            {"path": "SKILL.md", "startLine": 27, "endLine": 27, "quote": "dotnet so.dll --guide"}
-          ]
-        }
-      },
       "gate.workflow_blocked": {
         "description": "Blocked checkpoint gate for CK1, CK2, or revision-context waits.",
         "passExpression": {
@@ -97,7 +64,6 @@
     "routes": {
       "route.workflow": {
         "description": "Primary CK workflow route for the root moodboard-alignment skill.",
-        "requiredGateIds": ["gate.bootstrap_mcp_ready"],
         "requiredTerminalGateIds": [
           "gate.workflow_done"
         ],
@@ -133,26 +99,12 @@
       "revision_report"
     ]
   },
-  "startNodeId": "state.runtime_preflight",
-  "currentNodeId": "state.runtime_preflight",
+  "startNodeId": "state.start",
+  "currentNodeId": "state.start",
   "endNodeId": "state.done",
   "status": "readyToStart",
   "context": {},
   "nodes": {
-    "state.runtime_preflight": {
-      "$kind": "state",
-      "id": "state.runtime_preflight",
-      "name": "Runtime Preflight",
-      "description": "Resolve the exact published runtime launch descriptor before MCP registration.",
-      "workflowPhase": "01 Entry",
-      "groups": [
-        {
-          "id": "group.runtime_preflight",
-          "transitionIds": ["transition.runtime_preflight"]
-        }
-      ],
-      "waitBehavior": "blockUntilComplete"
-    },
     "state.start": {
       "$kind": "state",
       "id": "state.start",
@@ -163,7 +115,7 @@
         {
           "id": "group.start",
           "transitionIds": [
-            "transition.mcp_governance_entry"
+            "transition.resolve_classifier_authority"
           ]
         }
       ],
@@ -181,20 +133,6 @@
           "transitionIds": [
             "transition.classify_request"
           ]
-        }
-      ],
-      "waitBehavior": "blockUntilComplete"
-    },
-    "state.governance_entry": {
-      "$kind": "state",
-      "id": "state.governance_entry",
-      "name": "Governance Entry",
-      "description": "Continue after MCP startup evidence is recorded.",
-      "workflowPhase": "01 Entry",
-      "groups": [
-        {
-          "id": "group.governance_entry",
-          "transitionIds": ["transition.resolve_classifier_authority"]
         }
       ],
       "waitBehavior": "blockUntilComplete"
@@ -523,97 +461,6 @@
       "workflowPhase": "06 Completion",
       "groups": [],
       "waitBehavior": "blockUntilComplete"
-    },
-    "transition.runtime_preflight": {
-      "$kind": "command",
-      "id": "transition.runtime_preflight",
-      "name": "Resolve exact runtime descriptor",
-      "description": "Pause for the selected published runtime to provide its launch descriptor before the MCP entry check.",
-      "targetNodeId": "state.start",
-      "outputPath": "runtime_preflight_result",
-      "guardExpression": {"kind": "predicate", "source": "true", "entryPoint": "Evaluate", "resultType": "bool"},
-      "succeedExpression": {"kind": "predicate", "source": "context.Get<string>(\"runtime_preflight_result.runtime_launch_descriptor_ref\") != null", "entryPoint": "Evaluate", "resultType": "bool"},
-      "stepKind": "waitResume",
-      "publishesOutputFamilies": [
-        "runtime_preflight_result",
-        "mcp_registration_attempt_evidence",
-        "governance_entry_transport",
-        "runtime_launch_descriptor_ref"
-      ],
-      "command": {
-        "kind": "tool",
-        "name": "runtime.resolveDescriptor",
-        "environmentKey": "",
-        "parameters": {
-          "runtimePreflight": true,
-          "mcpPreflightExempt": true,
-          "mcpRegistrationRequired": true,
-          "runtimeLaunchDescriptorOutput": "runtime_launch_descriptor_ref",
-          "runtimeLaunchSelection": "runtime_owned",
-          "mcpRegistrationAttemptOutput": "mcp_registration_attempt_evidence",
-          "mcpConfigOutputDirectory": "~/.skills/loomed/mcp/so/0.3.318",
-          "mcpConfigFormats": ["vscode", "claude"],
-          "resumeOutputKey": "result",
-          "projectionMode": "canonical",
-          "requiredInputs": ["result"],
-          "mustMatchPayloadInputs": {
-            "operation_id": "runtime_preflight_result.operation_id"
-          },
-          "outputBindings": {
-            "runtime_launch_descriptor_ref": "$context:runtime_preflight_result.runtime_launch_descriptor_ref",
-            "mcp_registration_attempt_evidence": "$context:runtime_preflight_result.mcp_registration_attempt_evidence",
-            "governance_entry_transport": "$context:runtime_preflight_result.governance_entry_transport"
-          }
-        }
-      }
-    },
-    "transition.mcp_governance_entry": {
-      "$kind": "command",
-      "id": "transition.mcp_governance_entry",
-      "name": "Verify governed MCP entry",
-      "description": "Use the selected runtime descriptor to record MCP startup evidence or the allowed pre-dispatch fallback before any further workflow work.",
-      "targetNodeId": "state.governance_entry",
-      "outputPath": "mcp_startup_evidence",
-      "guardExpression": {"kind": "predicate", "source": "true", "entryPoint": "Evaluate", "resultType": "bool"},
-      "succeedExpression": {"kind": "predicate", "source": "context.Get<string>(\"mcp_startup_evidence.transport\") != null && context.Get<bool>(\"mcp_startup_evidence.initialized\") == true && context.Get<bool>(\"mcp_startup_evidence.tool_called\") == true && context.Get<string>(\"mcp_startup_evidence.tool_name\") == \"so_inspect_workflow_fragment\" && context.Get<string>(\"mcp_startup_evidence.workflow_file\") != null && context.Get<bool>(\"mcp_startup_evidence.fragment_bounded\") == true", "entryPoint": "Evaluate", "resultType": "bool"},
-      "stepKind": "mcpCall",
-      "mcpFirst": true,
-      "transport": "stdio",
-      "requiredTool": "so_inspect_workflow_fragment",
-      "workflowFileInput": "current_external_workflow_copy",
-      "runtimeCommand": "descriptor_owned_mcp_stdio",
-      "serverNameTemplate": "loom-so-{resolved_runtime_version}",
-      "operationIdInput": "operation_id",
-      "satisfiesGateIds": ["gate.bootstrap_mcp_ready"],
-      "publishesOutputFamilies": ["mcp_startup_evidence"],
-      "command": {
-        "kind": "tool",
-        "name": "so_inspect_workflow_fragment",
-        "environmentKey": "",
-        "parameters": {
-          "runtimeLaunchDescriptorField": "runtime_launch_descriptor_ref",
-          "mcpFirst": true,
-          "resumeOutputKey": "mcp_startup_evidence",
-          "projectionMode": "canonical",
-          "operationId": "moodboard-governance-entry",
-          "operationIdInput": "operation_id",
-          "transport": "stdio",
-          "requiredTool": "so_inspect_workflow_fragment",
-          "workflowFileInput": "current_external_workflow_copy",
-          "runtimeCommand": "descriptor_owned_mcp_stdio",
-          "serverNameTemplate": "loom-so-{resolved_runtime_version}",
-          "requiredInputs": ["operation_id", "mcp_startup_evidence", "mcp_startup_evidence.operation_id"],
-          "mustMatchPayloadInputs": {
-            "operation_id": "mcp_startup_evidence.operation_id"
-          },
-          "outputBindings": {
-            "mcp_startup_evidence": "$result"
-          },
-          "workflowFragmentPointer": "/",
-          "maxBytes": 4096,
-          "maxDepth": 3
-        }
-      }
     },
     "transition.classify_request": {
       "$kind": "command",
