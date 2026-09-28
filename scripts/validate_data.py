@@ -38,6 +38,13 @@ def main():
         data = json.loads(data_path.read_text(encoding="utf-8"))
     except Exception as e:
         print(f"ERROR: cannot read JSON: {e}")
+        print(json.dumps({
+            "passed": False,
+            "exit_code": 2,
+            "errors": 1,
+            "warnings": 0,
+            "data_json": str(data_path),
+        }, ensure_ascii=False))
         return 2
 
     for key in REQUIRED_TOP:
@@ -107,11 +114,16 @@ def main():
         print(f"ERROR: {msg}")
     for msg in warnings:
         print(f"WARN: {msg}")
-    print(json.dumps({"errors": len(errors), "warnings": len(warnings), "data_json": str(data_path)}, ensure_ascii=False))
 
-    if errors or (args.strict and warnings):
-        return 1
-    return 0
+    exit_code = 1 if errors or (args.strict and warnings) else 0
+    print(json.dumps({
+        "passed": exit_code == 0,
+        "exit_code": exit_code,
+        "errors": len(errors),
+        "warnings": len(warnings),
+        "data_json": str(data_path),
+    }, ensure_ascii=False))
+    return exit_code
 
 
 if __name__ == "__main__":
