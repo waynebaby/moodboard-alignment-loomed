@@ -18,7 +18,6 @@ description: 审美共识引擎。把客户 brief、会议记录、剧本/故事
 
 - 工作流源模板：`assets/so-workflow/so-template.json`
 - 运行时包锁：`assets/so-workflow/so-package-lock.json`
-- 规划文档：`assets/so-workflow/skill-plan.md`
 - 节点与产物映射：`assets/so-workflow/node-to-file-map.md`
 - CK 状态分类子代理：`assets/agents/moodboard-alignment-ck-state-classifier.agent.md`
 

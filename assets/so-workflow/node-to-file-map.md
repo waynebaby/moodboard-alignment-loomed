@@ -8,7 +8,6 @@
 | Runtime version authority | `assets/so-workflow/so-package-lock.json` | 锁定 SO 包版本、通道与恢复规则 |
 | Target business contract | `assets/so-workflow/contract.json` | 从 `SKILL.md` 提取 CK 状态、确认边界、revision 和输出约束 |
 | Workflow source template | `assets/so-workflow/so-template.json` | CK1 / CK2 / CK3 / revision 的 SO 图结构 |
-| Planning authority | `assets/so-workflow/skill-plan.md` | 本次治理切片的范围、目标、输出族 |
 | State classification weave-out | `assets/agents/moodboard-alignment-ck-state-classifier.agent.md` | 识别 CK 状态、项目类型与 revision 上下文；该精确文件也是子代理权威契约 |
 | Governance notes | `assets/so-workflow/governance-notes.md` | 记录 guide / package index / runtime proof 的治理结论 |
 
